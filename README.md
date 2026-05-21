@@ -81,7 +81,7 @@ graph TD
     classDef mosaic fill:#0d1f2d,stroke:#00e5ff,stroke-width:1px,color:#00e5ff;
 
     ModeController["Mode Controller <br/> (Q-Learning Over Cognitive Postures)"]
-    EpisodicMemory["EpisodicMemory <br/> (6,339+ Recorded Episodes in SQLite)"]:::memory
+    EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log)"]:::memory
     BayesianPerception["BayesianPerception <br/> (Belief Updating & Noise Smoothing)"]
     WorldModel["WorldModel <br/> (State-Action Outcome Statistics)"]
     EmotionalState["EmotionalState <br/> (Affective Modulation: Calm, Bored, Stressed, etc.)"]
