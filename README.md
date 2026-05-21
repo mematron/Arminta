@@ -6,7 +6,7 @@ ARMINTA is a Python-based autonomous agent that treats the host operating system
 
 The agent operates continuously, learning which system interventions produce measurable improvements across CPU, memory, I/O, thermal, and network dimensions. The stats below are live, pushed directly from the running agent:
 
-![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **[Live Agent Dashboard](https://mematron.github.io/arminta-status)** — real-time cognitive state, emotion, and telemetry pushed directly from the running agent.
+![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **[Live Agent Dashboard](https://mematron.github.io/arminta-status)** Real-time cognitive state, emotion, and telemetry pushed directly from the running agent.
 
 > **Source Status**: Closed source. This repository documents the architecture, design philosophy, and version lineage of the ARMINTA engine.
 
