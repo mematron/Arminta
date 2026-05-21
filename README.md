@@ -227,6 +227,29 @@ The persistent state includes:
 | **Precognitive Launch Detection** | Process-table monitoring that locks performance governor before a known workload fires, eliminating reaction latency. |
 | **IRQ Storm** | A spike in hardware interrupt rate (typically from a WiFi driver) that saturates the softirq handler and degrades system responsiveness. |
 | **OOM Immunity** | Protection against Linux kernel out-of-memory termination, ensuring the agent survives the memory crises it is meant to resolve. |
+| **mosaic_core** | ARMINTA's expanding world model. Probes time, filesystem, network, external signals, and self-history to build correlations beyond the machine. Findings accumulate over time with no predefined subject ceiling. |
+
+---
+
+### mosaic_core: Expanding World Model
+
+The **mosaic_core** is ARMINTA's outward-facing learning substrate. Where the causal graph models the machine, mosaic_core models everything else, building correlations through the same hypothesis/test/prune loop, logging every discovery to the episodic database under the `[MOSAIC]` prefix.
+
+It has no predefined subject ceiling. She starts with what is reachable and generates new subjects from what she finds. Some tiles will be missing forever. That is by design.
+
+**Probe substrates (rotating, every 300 steps during INVESTIGATE mode):**
+
+*   **Time** - Builds a circadian map of her own behavior by hour, identifying peak activity and quiet periods from accumulated runtime history.
+*   **Filesystem** - Monitors watched directories for new, modified, and removed files. Tracks activity patterns over time without reading content.
+*   **Network** - Probes the local gateway for latency and topology. Logs device presence, absence, and latency shifts as they occur.
+*   **External signals** - Fetches public data feeds (weather: temperature, humidity, cloud cover) and correlates them against internal metrics. If outdoor conditions affect machine behavior on this hardware, she will find it.
+*   **Self-history** - Queries her own episodic database for patterns she has not explicitly noticed: dominant mode/emotion pairs, reward trends, recurring anomalies.
+
+**Hypothesis lifecycle:**
+
+Every correlation above threshold opens a hypothesis. During dream cycles, open hypotheses are tested against accumulated data. Those confirmed by repeated evidence gain confidence. Those refuted lose it. At zero confidence, the hypothesis is pruned and she moves on.
+
+**Discovery log prefix:** `[MOSAIC][TIME]`, `[MOSAIC][NET]`, `[MOSAIC][EXT]`, `[MOSAIC][FS]`, `[MOSAIC][SELF]`, `[MOSAIC][DREAM]`
 
 ---
 
@@ -234,12 +257,13 @@ The persistent state includes:
 
 | Version | Release Date | Milestone |
 |---|---|---|
-| **Minuet v86** | Early 2024 | Foundation: first persistent causal world model. |
-| **Minuet v100** | Mid 2024 | Genetic algorithm integration for hypothesis evolution. |
-| **Minuet v105** | Late 2024 | Introduction of full cognitive layer (Emotional State, Self-Model, Episodic Database). |
-| **Minuet v106** | Early 2025 | Terminal corruption prevention; final Minuet stability release. |
-| **Arminta v1** | Mid 2025 | Rebrand and architectural consolidation. Introduction of SUKOSHI linkage. |
-| **Arminta v2** | Current | **Extension Renderer Sweep**: Implementation of Priority-1 browser process targeting, enabling surgical intervention in browser-heavy workloads with zero user-visible impact. |
+| **Minuet v5** | 2023 | Foundation: earliest recorded build. |
+| **Minuet v86** | 2025 | First persistent causal world model. |
+| **Minuet v100** | 2025 | Genetic algorithm integration for hypothesis evolution. |
+| **Minuet v105** | 2025 | Introduction of full cognitive layer (Emotional State, Self-Model, Episodic Database). |
+| **Minuet v106** | 2025 | Terminal corruption prevention; final Minuet stability release. |
+| **Arminta v1** | Early 2026 | Rebrand and architectural consolidation. Introduction of SUKOSHI linkage. |
+| **Arminta v2** | Mid 2026 | Extension Renderer Sweep: Priority-1 browser process targeting, enabling surgical intervention in browser-heavy workloads with zero user-visible impact. mosaic_core world expansion. |
 
 ---
 
