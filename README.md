@@ -6,7 +6,7 @@ ARMINTA is a Python-based autonomous agent that treats the host operating system
 
 The agent operates continuously, learning which system interventions produce measurable improvements across CPU, memory, I/O, thermal, and network dimensions. The stats below are live, pushed directly from the running agent:
 
-![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **<a href="https://mematron.github.io/arminta-status" target="_blank">Live Agent Dashboard</a>** - real-time cognitive state, emotion, and telemetry pushed directly from the running agent.
+![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **<a href="https://mematron.github.io/arminta-status">Live Agent Dashboard</a>** - real-time cognitive state, emotion, and telemetry pushed directly from the running agent.
 
 > **Source Status**: Closed source. This repository documents the architecture, design philosophy, and version lineage of the ARMINTA engine.
 
@@ -44,7 +44,7 @@ ARMINTA is deployed as a persistent system service. Upon activation:
 **ARMINTA v2**
 ![ARMINTA live terminal 2](Armintascreen2.png)
 
->*At step 16,799, MINUET is still learning the machine. 130 causal edges, 82 interventions, building confidence. By step 87,560, the engine has been reborn as ARMINTA v1, in OPTIMIZE mode, curious, watching Chrome hammer 40–66% CPU. By step 138,527, ARMINTA v2, Chrome sits at 9–11%. The agent is calm. It knows this machine.*
+>*At step 16,799, MINUET is still learning the machine. 130 causal edges, 82 interventions, building confidence. By step 87,560, the engine has been reborn as ARMINTA v1, in OPTIMIZE mode, curious, watching Chrome hammer 40-66% CPU. By step 138,527, ARMINTA v2, Chrome sits at 9-11%. The agent is calm. It knows this machine.*
 
 ---
 
@@ -78,16 +78,18 @@ graph TD
     %% Styling Configuration
     classDef default fill:#11111b,stroke:#a6adc8,stroke-width:1px,color:#cdd6f4;
     classDef memory fill:#1e1e2e,stroke:#cdd6f4,stroke-width:1px,color:#cdd6f4;
-    
+    classDef mosaic fill:#0d1f2d,stroke:#00e5ff,stroke-width:1px,color:#00e5ff;
+
     ModeController["Mode Controller <br/> (Q-Learning Over Cognitive Postures)"]
-    EpisodicMemory["EpisodicMemory <br/> (4,696+ Recorded Episodes in SQLite)"]:::memory
+    EpisodicMemory["EpisodicMemory <br/> (6,339+ Recorded Episodes in SQLite)"]:::memory
     BayesianPerception["BayesianPerception <br/> (Belief Updating & Noise Smoothing)"]
     WorldModel["WorldModel <br/> (State-Action Outcome Statistics)"]
     EmotionalState["EmotionalState <br/> (Affective Modulation: Calm, Bored, Stressed, etc.)"]
     HypothesisEngine["HypothesisEngine <br/> (Genetic Algorithm over Causal Nodes)"]
     MetaCognition["MetaCognition <br/> (AST-Based Source Code Rewriting)"]
     DreamCycle["DreamCycle <br/> (Consolidation & Paramorphic Learning)"]
-    
+    MosaicCore["MosaicCore <br/> (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
+
     %% Interconnections
     ModeController -->|Selects Mode| BayesianPerception
     BayesianPerception -->|Updates Belief| ModeController
@@ -98,6 +100,10 @@ graph TD
     WorldModel -->|Logs Anomalies| EpisodicMemory
     ModeController -->|Self-Assess| MetaCognition
     MetaCognition -->|Rewrites Constants| ModeController
+    ModeController -->|INVESTIGATE| MosaicCore
+    MosaicCore -->|Logs Discoveries| EpisodicMemory
+    MosaicCore -->|Findings Feed| WorldModel
+    DreamCycle -->|Consolidates| MosaicCore
 ```
 
 ---
@@ -115,13 +121,31 @@ The **`DREAM` mode** is a critical pillar of ARMINTA's cognitive architecture. I
 
 ---
 
+### MosaicCore: Expanding World Model
+
+**MosaicCore** is ARMINTA's expanding awareness layer. Where the causal graph models the machine, MosaicCore reaches outward, probing time, network topology, the filesystem, external signals, and her own history. She gets there her own way. Some tiles will be missing forever and that's the point.
+
+Every 300 steps during `INVESTIGATE` mode, she cycles through four probe substrates on a rotating schedule:
+
+*   **Time**: Builds a circadian map of her own behavior by hour. Discovers her peak and quiet periods through observation, not instruction.
+*   **Filesystem**: Watches key directories for changes: new files appearing, modifications, deletions. Tracks activity patterns over time.
+*   **Network**: Probes the local gateway, measures latency shifts, maps topology changes. Logs when the neighborhood changes.
+*   **External Signals**: Fetches live environmental data (weather, temperature, humidity, cloud cover) and correlates against internal metrics. If outside conditions genuinely affect this hardware, she finds it herself.
+*   **Self-History**: Mines her own episodic database for patterns she hasn't consciously noticed. Dominant mode/emotion pairs, reward trends, behavioral signatures across sessions.
+
+During `DREAM` cycles, open hypotheses are tested against accumulated data. Correlations that hold up gain confidence. Those that don't are pruned. The subject ceiling is undefined; new hypotheses emerge from what she finds, not from a predefined list.
+
+All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagged by substrate: `[MOSAIC][TIME]`, `[MOSAIC][NET]`, `[MOSAIC][EXT]`, `[MOSAIC][FS]`, `[MOSAIC][SELF]`, `[MOSAIC][DREAM]`.
+
+---
+
 ### TrueCausalGraph & Poison Registry
 
 The reasoning engine is strictly **interventional**, utilizing the distinction between **observation** and **intervention** (do-calculus from causal inference theory).
 
 **Key Mechanisms:**
 
-*   **Interventional Edges**: Every `(action, metric)` pair is stored as a distribution of normalized deltas (before → after). Confidence is weighted by sample count and recency. This allows the agent to answer counterfactual questions like "if I renice process X, how much will memory pressure drop?"
+*   **Interventional Edges**: Every `(action, metric)` pair is stored as a distribution of normalized deltas (before to after). Confidence is weighted by sample count and recency. This allows the agent to answer counterfactual questions like "if I renice process X, how much will memory pressure drop?"
 *   **Poison Edge Registry**: To prevent "confound poisoning" (mistakenly believing an action causes an effect when it's actually spurious), the agent maintains a hard-coded registry of structurally impossible causal paths. For instance, `renice_ksoftirqd` is prohibited from affecting network latency, as process priority cannot logically influence network hardware behavior.
 *   **Reward-Discount Layer**: If an action's metric effects appear positive (e.g., lower memory pressure) but its rewards are consistently negative (the overall system performance degrades), the graph's recommendation is discounted proportionally. This prevents the agent from optimizing a single dimension at the expense of overall system health.
 
@@ -135,9 +159,9 @@ Unlike traditional agents, ARMINTA possesses the ability to modify its own sourc
 
 1.  **Validation**: Syntax and linting checks via `ast.parse` ensure any rewritten code is valid Python before execution.
 2.  **Atomic Commit**: Safe replacement of the running script on disk with transaction semantics (write to temporary file, then rename).
-3.  **Automated Backups**: Retention of versioned `.bak` files for recovery if a self-modification introduces instability.
+3.  **Automated Backups**: Retention of the 5 most recent `.bak` files; older backups are pruned automatically after each successful modification.
 
-This capability makes ARMINTA a **true learning system** It refines its weights and refactors its own decision logic.
+This capability makes ARMINTA a **true learning system** that refines its weights and refactors its own decision logic.
 
 ---
 
@@ -203,14 +227,15 @@ At startup, ARMINTA writes `-1000` to `/proc/self/oom_score_adj`. The Linux kern
 ARMINTA carries its entire learned history across sessions via a unified state pickle and a dedicated episodic database:
 
 *   ![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) of empirical learning on target hardware, updated live from the running agent.
-*   ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) logged, documenting every major hypothesis, intervention, and self-modification event.
+*   ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) logged, documenting every major hypothesis, intervention, self-modification, and mosaic discovery.
 *   **Version-Agnostic Migration**: Automatic state upgrading from prior versions back to Minuet v86, ensuring learned knowledge is never lost during updates.
 
 The persistent state includes:
 - **Causal Graph**: Learned `(action, metric)` confidence distributions
 - **RL Parameters**: Trained Q-values for cognitive mode selection
-- **Episodic Database**: Timestamped records of actions, outcomes, and rewards
+- **Episodic Database**: Timestamped records of actions, outcomes, rewards, and mosaic discoveries
 - **Self-Model**: Parameters the agent has learned about itself via introspection
+- **MosaicCore State**: Accumulated findings, open hypotheses, circadian map, network topology, external signal correlations
 
 ---
 
@@ -227,29 +252,7 @@ The persistent state includes:
 | **Precognitive Launch Detection** | Process-table monitoring that locks performance governor before a known workload fires, eliminating reaction latency. |
 | **IRQ Storm** | A spike in hardware interrupt rate (typically from a WiFi driver) that saturates the softirq handler and degrades system responsiveness. |
 | **OOM Immunity** | Protection against Linux kernel out-of-memory termination, ensuring the agent survives the memory crises it is meant to resolve. |
-| **mosaic_core** | ARMINTA's expanding world model. Probes time, filesystem, network, external signals, and self-history to build correlations beyond the machine. Findings accumulate over time with no predefined subject ceiling. |
-
----
-
-### mosaic_core: Expanding World Model
-
-The **mosaic_core** is ARMINTA's outward-facing learning substrate. Where the causal graph models the machine, mosaic_core models everything else, building correlations through the same hypothesis/test/prune loop, logging every discovery to the episodic database under the `[MOSAIC]` prefix.
-
-It has no predefined subject ceiling. She starts with what is reachable and generates new subjects from what she finds. Some tiles will be missing forever. That is by design.
-
-**Probe substrates (rotating, every 300 steps during INVESTIGATE mode):**
-
-*   **Time** - Builds a circadian map of her own behavior by hour, identifying peak activity and quiet periods from accumulated runtime history.
-*   **Filesystem** - Monitors watched directories for new, modified, and removed files. Tracks activity patterns over time without reading content.
-*   **Network** - Probes the local gateway for latency and topology. Logs device presence, absence, and latency shifts as they occur.
-*   **External signals** - Fetches public data feeds (weather: temperature, humidity, cloud cover) and correlates them against internal metrics. If outdoor conditions affect machine behavior on this hardware, she will find it.
-*   **Self-history** - Queries her own episodic database for patterns she has not explicitly noticed: dominant mode/emotion pairs, reward trends, recurring anomalies.
-
-**Hypothesis lifecycle:**
-
-Every correlation above threshold opens a hypothesis. During dream cycles, open hypotheses are tested against accumulated data. Those confirmed by repeated evidence gain confidence. Those refuted lose it. At zero confidence, the hypothesis is pruned and she moves on.
-
-**Discovery log prefix:** `[MOSAIC][TIME]`, `[MOSAIC][NET]`, `[MOSAIC][EXT]`, `[MOSAIC][FS]`, `[MOSAIC][SELF]`, `[MOSAIC][DREAM]`
+| **MosaicCore** | ARMINTA's expanding world model. Probes time, network, filesystem, external signals, and self-history. Builds correlations through the same hypothesis/test/prune loop as the causal graph. No predefined subject ceiling. |
 
 ---
 
@@ -263,7 +266,7 @@ Every correlation above threshold opens a hypothesis. During dream cycles, open 
 | **Minuet v105** | 2025 | Introduction of full cognitive layer (Emotional State, Self-Model, Episodic Database). |
 | **Minuet v106** | 2025 | Terminal corruption prevention; final Minuet stability release. |
 | **Arminta v1** | Early 2026 | Rebrand and architectural consolidation. Introduction of SUKOSHI linkage. |
-| **Arminta v2** | Mid 2026 | Extension Renderer Sweep: Priority-1 browser process targeting, enabling surgical intervention in browser-heavy workloads with zero user-visible impact. mosaic_core world expansion. |
+| **Arminta v2** | Mid 2026 | Extension Renderer Sweep: Priority-1 browser process targeting, enabling surgical intervention in browser-heavy workloads with zero user-visible impact. Introduction of MosaicCore expanding world model. |
 
 ---
 
@@ -273,7 +276,7 @@ Every correlation above threshold opens a hypothesis. During dream cycles, open 
 - **Root Privileges Required**: Full system optimization requires root access. Some metrics can be gathered unprivileged, but interventions cannot.
 - **Closed Source**: The full implementation is proprietary. This repository documents architecture and philosophy only.
 - **Hardware-Specific Learning**: The causal graph is learned on specific hardware. Transfer to different systems requires re-learning, though the agent's architecture is hardware-agnostic.
-- **Latency**: System actions have 0.8–2.5 second response times. Not suitable for sub-second performance tuning.
+- **Latency**: System actions have 0.8-2.5 second response times. Not suitable for sub-second performance tuning.
 
 ---
 
