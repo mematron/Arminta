@@ -195,6 +195,39 @@ This capability makes ARMINTA a **true learning system** that refines its weight
 
 ---
 
+### Action Set
+
+ARMINTA's intervention vocabulary is the complete set of things she can actually do to the machine. Every action is a discrete, bounded operation with a defined safety profile. The causal graph learns which of these produce real effects; the rest of the architecture decides when to use them.
+
+Actions are grouped by what they touch:
+
+**Hardware & Power**
+- `set_ac_max_perf` — One-shot AC power performance burst: fires CPU performance governor, CPU turbo, and GPU max performance together. Only called when AC power is confirmed and the governor is not already pinned.
+- `set_cpu_performance` — Writes the performance governor to all CPU cores individually. Pins every core at maximum clock frequency, eliminating ramp-up latency during burst workloads.
+- `enable_turbo` — Enables CPU turbo/boost. Intel via `/sys/devices/system/cpu/intel_pstate/no_turbo`, AMD via `/sys/devices/system/cpu/cpufreq/boost`. Reads current state first; no-ops cleanly if turbo is already on.
+- `set_gpu_performance` — Pins GPU to maximum performance level. AMD via amdgpu sysfs (`power_dpm_force_performance_level → high`), NVIDIA via `nvidia-smi` persistence mode and clock locking. Safe to call repeatedly.
+- `relax_governor` — Restores the CPU governor to the saved pre-intervention value after sustained idle. The other half of the governor lifecycle; returns the machine to its natural power profile without human input.
+
+**Process Management**
+- `kill_extension_renderers` — SIGTERM sweep across all browser extension renderer processes identified by architectural flags (`--extension-process`). Sweeps the entire population in one pass rather than picking a single target. These processes auto-restart silently; the user sees nothing.
+- `kill_top_proc` — SIGTERM the single highest-CPU offending process. Applies the same browser taxonomy: extension renderers first, then tab renderers, never the main browser process. Falls back to the top non-browser process if no browser offender is present.
+- `renice_ksoftirqd` — Boosts all `ksoftirqd/N` kernel threads to scheduling priority -5 during an IRQ storm. Lets the softirq handler drain its queue faster. Safe and reversible; resets on reboot. Never exceeds -5 to avoid starving user processes.
+
+**Memory**
+- `drop_caches` — Instructs the kernel to release page, inode, and dentry caches (`/proc/sys/vm/drop_caches → 3`). PSI-gated: suppressed entirely if memory stall pressure exceeds threshold, since evicting pages under active stall makes things worse. Also suppressed on ZRAM/ZSWAP systems where the operation burns CPU for no gain.
+- `sync` — Flushes dirty kernel write buffers to disk. Always safe, always available. Low cost, used before cache operations or as a lightweight I/O intervention.
+
+**Network**
+- `disable_wifi_powersave` — Disables WiFi power save mode on the active interface via `iwconfig` or `iw`. Power save causes 50-200ms latency spikes during streaming and VoIP. Effect persists until reboot.
+- `flush_dns` — Flushes the system DNS resolver cache via `systemd-resolve` or `resolvectl`. Clears stale or poisoned DNS entries that can cause connection delays.
+
+**Diagnostics (read-only)**
+- `log_top_proc` — Captures and logs the current highest-CPU process. Read-only; feeds the causal graph with process identity context without any intervention.
+- `log_top_net_proc` — Identifies the non-browser process with the most active network connections. Flags P2P patterns explicitly.
+- `log_iface_health` — Reports active network interface error rate, drop rate, WiFi signal strength, band, and link speed. Read-only; used to build situational awareness before a network intervention.
+
+---
+
 ### SelfTuner: Adaptive Threshold Engine
 
 Every 300 steps, the **SelfTuner** analyzes rolling metric history via exponential moving average to adapt five runtime thresholds toward observed machine reality:
@@ -288,6 +321,12 @@ The persistent state includes:
 | **PSI (Pressure Stall Information)** | Linux kernel mechanism for measuring I/O and memory contention. Used to detect thrashing and system saturation. |
 | **Precognitive Launch Detection** | Process-table monitoring that locks performance governor before a known workload fires, eliminating reaction latency. |
 | **IRQ Storm** | A spike in hardware interrupt rate (typically from a WiFi driver) that saturates the softirq handler and degrades system responsiveness. |
+| **ksoftirqd** | Linux kernel threads (`ksoftirqd/N`, one per CPU core) that process deferred software interrupt work: network receive, timers, and other high-frequency kernel events. During an IRQ storm these threads fall behind, causing latency spikes. ARMINTA boosts their scheduling priority to help them catch up. |
+| **CPU Governor** | The Linux kernel policy that controls how CPU clock frequency scales with load. Common values: `performance` (always max clock), `powersave` (always min), `schedutil` (scales with scheduler utilization). ARMINTA reads, escalates, and restores this value as part of its intervention cycle. |
+| **CPU Turbo / Boost** | A hardware feature (Intel Turbo Boost, AMD Precision Boost) that allows CPU cores to run above their base clock for short bursts when thermal and power headroom allows. ARMINTA can enable this explicitly and reads current state before writing to avoid spurious causal edges. |
+| **Page Cache / drop_caches** | The Linux kernel maintains a page cache of recently read disk data in unused RAM for fast re-access. `drop_caches` releases this memory back to the pool. Safe because the kernel only evicts clean pages; dirty ones are flushed first. Counterproductive under active memory stall, which is why ARMINTA PSI-gates this action. |
+| **WiFi Power Save** | A WiFi driver mode that periodically powers down the radio to save battery. The tradeoff is 50-200ms latency spikes when the radio wakes to receive a packet. ARMINTA can disable this permanently for the session via `iwconfig` or `iw`. |
+| **Extension Renderer** | A browser subprocess spawned specifically to run browser extensions, identified by the `--extension-process` flag in its command line. These processes are architecturally distinct from tab renderers and the main browser process. They can be terminated and will restart silently and automatically, making them ARMINTA's highest-priority kill target. |
 | **OOM Immunity** | Protection against Linux kernel out-of-memory termination, ensuring the agent survives the memory crises it is meant to resolve. |
 | **MosaicCore** | ARMINTA's expanding world model. Probes time, network, filesystem, external signals, and self-history. Builds correlations through the same hypothesis/test/prune loop as the causal graph. No predefined subject ceiling. |
 | **LexicalCore** | ARMINTA's emergent language layer. Builds symbol grammar from her own episodic history. Forms statements and holds open questions. Output is in her own vocabulary   not borrowed from any external language. |
