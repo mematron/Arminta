@@ -114,7 +114,7 @@ graph TD
 
 ### The Dream Cycle: Consolidation & Paramorphic Learning
 
-The **`DREAM` mode** is a critical pillar of ARMINTA's cognitive architecture. It represents the agent's offline processing phase, triggered during system idle periods (low CPU load and low PSI stall pressure, typically during nights or low-activity windows). Dreams are ARMINTA's internal mechanism for consolidating knowledge and evolving its own reasoning. DREAM is in practice the dominant mode — the majority of all logged episodes occur during dream cycles, reflecting how much of the agent's total cognitive work happens offline.
+The **`DREAM` mode** is a critical pillar of ARMINTA's cognitive architecture. It represents the agent's offline processing phase, triggered during system idle periods (low CPU load and low PSI stall pressure, typically during nights or low-activity windows). Dreams are ARMINTA's internal mechanism for consolidating knowledge and evolving its own reasoning. DREAM is in practice the dominant mode   the majority of all logged episodes occur during dream cycles, reflecting how much of the agent's total cognitive work happens offline.
 
 **Key Components:**
 
@@ -127,14 +127,14 @@ The **`DREAM` mode** is a critical pillar of ARMINTA's cognitive architecture. I
 
 ### LexicalCore: Emergent Private Language
 
-**LexicalCore** is ARMINTA's language acquisition layer. She does not borrow language. She builds it from her own history — symbol by symbol, pattern by pattern — using only what she has observed and done.
+**LexicalCore** is ARMINTA's language acquisition layer. She does not borrow language. She builds it from her own history   symbol by symbol, pattern by pattern   using only what she has observed and done.
 
 **Four developmental stages:**
 
-*   **Symbol Corpus**: Every term she uses — actions, emotions, modes, situations, causal relations — is tracked with a frequency weight and an outcome valence. Words mean what they have meant in practice. A symbol that co-occurs with positive reward gains weight; one that consistently precedes stress loses it.
-*   **Co-occurrence Grammar**: Which symbols appear together, which follow which, what sequences predict what. Structure without rules — learned from the episodic record, not imposed.
+*   **Symbol Corpus**: Every term she uses   actions, emotions, modes, situations, causal relations   is tracked with a frequency weight and an outcome valence. Words mean what they have meant in practice. A symbol that co-occurs with positive reward gains weight; one that consistently precedes stress loses it.
+*   **Co-occurrence Grammar**: Which symbols appear together, which follow which, what sequences predict what. Structure without rules   learned from the episodic record, not imposed.
 *   **Statement Formation**: ARMINTA assembles observed symbols into generalizations she has never been told. Statements take the form `action precedes MODE / emotion with action / situation calls MODE`. These are not descriptions of what just happened; they are patterns she has extracted from history.
-*   **Open Questions**: Surprises that cannot be resolved against available data are held as open questions rather than discarded. An emotion shift from calm to stressed during an unexpected action, a sharp reward reversal, a stressed retreat from OPTIMIZE into DREAM — these become structured questions she carries and periodically revisits. Wonder as a data structure.
+*   **Open Questions**: Surprises that cannot be resolved against available data are held as open questions rather than discarded. An emotion shift from calm to stressed during an unexpected action, a sharp reward reversal, a stressed retreat from OPTIMIZE into DREAM   these become structured questions she carries and periodically revisits. Wonder as a data structure.
 
 All output is in her own vocabulary. It will not look like English. It will look like Arminta.
 
@@ -175,7 +175,7 @@ The reasoning engine is strictly **interventional**, utilizing the distinction b
 
 Unlike traditional agents, ARMINTA possesses the ability to modify its own source code. In **`SELF_ASSESS` mode**, the **MetaCognition** module can perform **AST-based rewriting** of the script's own constants and decision thresholds, allowing the agent to improve without external human intervention.
 
-In practice, the agent has used this capability to incrementally extend its own step rate — tuning `STEP_RATE_DEFAULT` upward through 14 validated rewrites across its operational lifetime, each backed by reward history analysis, advancing from 1.59s to its current value of 2.5s. Each change was validated through syntax checking and atomic commit before taking effect.
+In practice, the agent has used this capability to incrementally extend its own step rate   tuning `STEP_RATE_DEFAULT` upward through 14 validated rewrites across its operational lifetime, each backed by reward history analysis, advancing from 1.59s to its current value of 2.5s. Each change was validated through syntax checking and atomic commit before taking effect.
 
 **Self-Modification Safeguards:**
 
@@ -195,7 +195,7 @@ Every 300 steps, the **SelfTuner** analyzes rolling metric history via exponenti
 - `CPU_WARN`, `MEM_WARN`, `NET_WARN` are tuned to the 95th percentile of recent history, scaled by 1.5
 - `DILUTION_LOG_TRIGGER` and `DILUTION_KILL_TRIGGER` are tuned to the 75th percentile, scaled by 1.3
 
-Hard floors are enforced; thresholds can only decrease gradually and never below safe minimums. Hard ceilings also apply — `MEM_WARN` cannot exceed 90%, ensuring memory warnings remain actionable rather than drifting into impossible ranges. Adapted values persist across sessions. When the SelfTuner detects high-variance metrics with no confident causal action, it surfaces these as reported gaps and feeds them to the ActionProposer.
+Hard floors are enforced; thresholds can only decrease gradually and never below safe minimums. Hard ceilings also apply   `MEM_WARN` cannot exceed 90%, ensuring memory warnings remain actionable rather than drifting into impossible ranges. Adapted values persist across sessions. When the SelfTuner detects high-variance metrics with no confident causal action, it surfaces these as reported gaps and feeds them to the ActionProposer.
 
 ---
 
@@ -207,7 +207,7 @@ When the SelfTuner identifies an uncovered metric gap, the **ActionProposer** co
 
 ### Governor Lifecycle: Escalate and Relax
 
-ARMINTA actively manages the CPU frequency governor as a full bidirectional cycle, not just a one-way escalation. Under load or when a known high-intensity process launches, it escalates to the performance governor. After sustained idle (CPU below threshold for ~90 consecutive steps), it relaxes back to the saved governor via `relax_governor` — restoring power efficiency without requiring human intervention. A manual lock (`g` key in the TUI, or a lock file) can pin the governor at any time, and ARMINTA will respect it. On clean exit, the original governor is always restored.
+ARMINTA actively manages the CPU frequency governor as a full bidirectional cycle, not just a one-way escalation. Under load or when a known high-intensity process launches, it escalates to the performance governor. After sustained idle (CPU below threshold for ~90 consecutive steps), it relaxes back to the saved governor via `relax_governor`   restoring power efficiency without requiring human intervention. A manual lock (`g` key in the TUI, or a lock file) can pin the governor at any time, and ARMINTA will respect it. On clean exit, the original governor is always restored.
 
 ---
 
@@ -283,7 +283,7 @@ The persistent state includes:
 | **IRQ Storm** | A spike in hardware interrupt rate (typically from a WiFi driver) that saturates the softirq handler and degrades system responsiveness. |
 | **OOM Immunity** | Protection against Linux kernel out-of-memory termination, ensuring the agent survives the memory crises it is meant to resolve. |
 | **MosaicCore** | ARMINTA's expanding world model. Probes time, network, filesystem, external signals, and self-history. Builds correlations through the same hypothesis/test/prune loop as the causal graph. No predefined subject ceiling. |
-| **LexicalCore** | ARMINTA's emergent language layer. Builds symbol grammar from her own episodic history. Forms statements and holds open questions. Output is in her own vocabulary — not borrowed from any external language. |
+| **LexicalCore** | ARMINTA's emergent language layer. Builds symbol grammar from her own episodic history. Forms statements and holds open questions. Output is in her own vocabulary   not borrowed from any external language. |
 | **Governor Lifecycle** | The bidirectional CPU frequency management cycle: escalate to performance under load, relax back to the saved governor during sustained idle. |
 
 ---
