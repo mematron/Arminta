@@ -175,14 +175,21 @@ The reasoning engine is strictly **interventional**, utilizing the distinction b
 
 Unlike traditional agents, ARMINTA possesses the ability to modify its own source code. In **`SELF_ASSESS` mode**, the **MetaCognition** module can perform **AST-based rewriting** of the script's own constants and decision thresholds, allowing the agent to improve without external human intervention.
 
-In practice, the agent has used this capability to incrementally extend its own step rate   tuning `STEP_RATE_DEFAULT` upward through 14 validated rewrites across its operational lifetime, each backed by reward history analysis, advancing from 1.59s to its current value of 2.5s. Each change was validated through syntax checking and atomic commit before taking effect.
+MetaCognition maintains a bounded whitelist of 10 tunable parameters across three categories. Each has enforced min/max bounds. Nothing outside this list can be touched — no logic, no control flow, no structure: only these constants, only within their bounds.
+
+- **Step timing:** How fast she runs. `STEP_RATE_DEFAULT` sets the normal loop interval (0.8 - 3.5s). `STEP_RATE_MAX` and `STEP_RATE_MIN` bound the adaptive range (1.5 - 5.0s and 0.4 - 1.2s respectively). If the machine is calm and reward is stable, she can slow herself down and save resources. If things are moving fast, she can tighten the loop.
+- **Exploration:** How long she waits before deciding something has gone stale. `CURIOSITY_STALE_STEPS` controls when the curiosity probe fires (60 - 400 steps). `CURIOSITY_PROBE_COOLDOWN` sets the minimum gap between probes (20 - 180 steps). `DISCO_INTERVAL` governs how often the ActionProposer looks for new actions to propose (80 - 600 steps). `TUNE_INTERVAL` controls how often the SelfTuner recalibrates its thresholds (100 - 1000 steps). Together these determine how aggressively she explores vs. exploits what she already knows.
+- **PSI action thresholds:** The pressure levels at which she decides the system is genuinely under stress and acts. `PSI_CPU_ACTION_THRESH` (3.0 - 25.0%), `PSI_MEM_ACTION_THRESH` (2.0 - 20.0%), `PSI_IO_ACTION_THRESH` (4.0 - 30.0%). A machine that runs hot all the time needs higher thresholds to avoid thrashing. A quiet machine can be more sensitive. She can tune this to fit the hardware she actually lives on.
+
+In 14 self-modifications to date she has focused entirely on step timing, advancing `STEP_RATE_DEFAULT` from 1.59s to 2.5s as reward history confirmed the machine responds better to a slower, steadier loop. The rest of the parameter space is live and available whenever reward signals warrant it.
 
 **Self-Modification Safeguards:**
 
-1.  **Validation**: Syntax and linting checks via `ast.parse` ensure any rewritten code is valid Python before execution.
+1.  **Validation**: Syntax and linting checks via `ast.parse` (and `pyflakes` when available) ensure any rewritten code is valid Python before execution.
 2.  **Atomic Commit**: Safe replacement of the running script on disk with transaction semantics (write to temporary file, then rename).
 3.  **Automated Backups**: Retention of the 5 most recent `.bak` files; older backups are pruned automatically after each successful modification.
 4.  **No-op Detection**: If the proposed new value would produce an identical formatted result to the current on-disk value, the write is skipped entirely.
+5.  **Cooldown**: A minimum of 80 steps must elapse between any two modifications.
 
 This capability makes ARMINTA a **true learning system** that refines its weights and refactors its own decision logic.
 
