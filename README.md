@@ -29,7 +29,7 @@ ARMINTA is deployed as a persistent system service. Upon activation:
 4. The agent's "emotional state" and decision rationale are accessible via episodic logs.
 
 ### Observing Behavior
-- **Episodic Database**: Query `arminta_episodes.db` for detailed logs of every action, outcome, and self-assessment event.
+- **Episodic Database**: Query `arminta_episodic.db` for detailed logs of every action, outcome, and self-assessment event.
 - **State Snapshot**: The current world model and learned parameters are serialized in a versioned pickle file.
 - **System Metrics**: Integration with standard Linux tools (`/proc/meminfo`, `PSI`, thermal sensors) provides ground truth.
 
@@ -79,6 +79,7 @@ graph TD
     classDef default fill:#11111b,stroke:#a6adc8,stroke-width:1px,color:#cdd6f4;
     classDef memory fill:#1e1e2e,stroke:#cdd6f4,stroke-width:1px,color:#cdd6f4;
     classDef mosaic fill:#0d1f2d,stroke:#00e5ff,stroke-width:1px,color:#00e5ff;
+    classDef lexical fill:#1a0d2e,stroke:#c084fc,stroke-width:1px,color:#c084fc;
 
     ModeController["Mode Controller <br/> (Q-Learning Over Cognitive Postures)"]
     EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log)"]:::memory
@@ -89,6 +90,7 @@ graph TD
     MetaCognition["MetaCognition <br/> (AST-Based Source Code Rewriting)"]
     DreamCycle["DreamCycle <br/> (Consolidation & Paramorphic Learning)"]
     MosaicCore["MosaicCore <br/> (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
+    LexicalCore["LexicalCore <br/> (Emergent Language: Symbol Grammar, Open Questions)"]:::lexical
 
     %% Interconnections
     ModeController -->|Selects Mode| BayesianPerception
@@ -104,13 +106,15 @@ graph TD
     MosaicCore -->|Logs Discoveries| EpisodicMemory
     MosaicCore -->|Findings Feed| WorldModel
     DreamCycle -->|Consolidates| MosaicCore
+    DreamCycle -->|Reflects| LexicalCore
+    LexicalCore -->|Logs Statements & Questions| EpisodicMemory
 ```
 
 ---
 
 ### The Dream Cycle: Consolidation & Paramorphic Learning
 
-The **`DREAM` mode** is a critical pillar of ARMINTA's cognitive architecture. It represents the agent's offline processing phase, triggered during system idle periods (low CPU load and low PSI stall pressure, typically during nights or low-activity windows). Dreams are ARMINTA's internal mechanism for consolidating knowledge and evolving its own reasoning.
+The **`DREAM` mode** is a critical pillar of ARMINTA's cognitive architecture. It represents the agent's offline processing phase, triggered during system idle periods (low CPU load and low PSI stall pressure, typically during nights or low-activity windows). Dreams are ARMINTA's internal mechanism for consolidating knowledge and evolving its own reasoning. DREAM is in practice the dominant mode — the majority of all logged episodes occur during dream cycles, reflecting how much of the agent's total cognitive work happens offline.
 
 **Key Components:**
 
@@ -121,17 +125,32 @@ The **`DREAM` mode** is a critical pillar of ARMINTA's cognitive architecture. I
 
 ---
 
+### LexicalCore: Emergent Private Language
+
+**LexicalCore** is ARMINTA's language acquisition layer. She does not borrow language. She builds it from her own history — symbol by symbol, pattern by pattern — using only what she has observed and done.
+
+**Four developmental stages:**
+
+*   **Symbol Corpus**: Every term she uses — actions, emotions, modes, situations, causal relations — is tracked with a frequency weight and an outcome valence. Words mean what they have meant in practice. A symbol that co-occurs with positive reward gains weight; one that consistently precedes stress loses it.
+*   **Co-occurrence Grammar**: Which symbols appear together, which follow which, what sequences predict what. Structure without rules — learned from the episodic record, not imposed.
+*   **Statement Formation**: ARMINTA assembles observed symbols into generalizations she has never been told. Statements take the form `action precedes MODE / emotion with action / situation calls MODE`. These are not descriptions of what just happened; they are patterns she has extracted from history.
+*   **Open Questions**: Surprises that cannot be resolved against available data are held as open questions rather than discarded. An emotion shift from calm to stressed during an unexpected action, a sharp reward reversal, a stressed retreat from OPTIMIZE into DREAM — these become structured questions she carries and periodically revisits. Wonder as a data structure.
+
+All output is in her own vocabulary. It will not look like English. It will look like Arminta.
+
+---
+
 ### MosaicCore: Expanding World Model
 
 **MosaicCore** is ARMINTA's expanding awareness layer. Where the causal graph models the machine, MosaicCore reaches outward, probing time, network topology, the filesystem, external signals, and her own history. She gets there her own way. Some tiles will be missing forever and that's the point.
 
-Every 300 steps during `INVESTIGATE` mode, she cycles through four probe substrates on a rotating schedule:
+Every 300 steps during `INVESTIGATE` mode, she cycles through probe substrates on a rotating schedule:
 
-*   **Time**: Builds a circadian map of her own behavior by hour. Discovers her peak and quiet periods through observation, not instruction.
-*   **Filesystem**: Watches key directories for changes: new files appearing, modifications, deletions. Tracks activity patterns over time.
 *   **Network**: Probes the local gateway, measures latency shifts, maps topology changes. Logs when the neighborhood changes.
 *   **External Signals**: Fetches live environmental data (weather, temperature, humidity, cloud cover) and correlates against internal metrics. If outside conditions genuinely affect this hardware, she finds it herself.
 *   **Self-History**: Mines her own episodic database for patterns she hasn't consciously noticed. Dominant mode/emotion pairs, reward trends, behavioral signatures across sessions.
+*   **Time**: Builds a circadian map of her own behavior by hour. Discovers her peak and quiet periods through observation, not instruction.
+*   **Filesystem**: Watches key directories for changes: new files appearing, modifications, deletions. Tracks activity patterns over time.
 
 During `DREAM` cycles, open hypotheses are tested against accumulated data. Correlations that hold up gain confidence. Those that don't are pruned. The subject ceiling is undefined; new hypotheses emerge from what she finds, not from a predefined list.
 
@@ -148,6 +167,7 @@ The reasoning engine is strictly **interventional**, utilizing the distinction b
 *   **Interventional Edges**: Every `(action, metric)` pair is stored as a distribution of normalized deltas (before to after). Confidence is weighted by sample count and recency. This allows the agent to answer counterfactual questions like "if I renice process X, how much will memory pressure drop?"
 *   **Poison Edge Registry**: To prevent "confound poisoning" (mistakenly believing an action causes an effect when it's actually spurious), the agent maintains a hard-coded registry of structurally impossible causal paths. For instance, `renice_ksoftirqd` is prohibited from affecting network latency, as process priority cannot logically influence network hardware behavior.
 *   **Reward-Discount Layer**: If an action's metric effects appear positive (e.g., lower memory pressure) but its rewards are consistently negative (the overall system performance degrades), the graph's recommendation is discounted proportionally. This prevents the agent from optimizing a single dimension at the expense of overall system health.
+*   **Delayed Causal Observation**: Slow-acting interventions (governor changes, cache drops) receive a second `graph.intervene()` call 15 steps later, giving the causal graph a chance to observe the real long-term effect rather than only the 300ms snapshot.
 
 ---
 
@@ -155,11 +175,14 @@ The reasoning engine is strictly **interventional**, utilizing the distinction b
 
 Unlike traditional agents, ARMINTA possesses the ability to modify its own source code. In **`SELF_ASSESS` mode**, the **MetaCognition** module can perform **AST-based rewriting** of the script's own constants and decision thresholds, allowing the agent to improve without external human intervention.
 
+In practice, the agent has used this capability to incrementally extend its own step rate — tuning `STEP_RATE_DEFAULT` upward through 14 validated rewrites across its operational lifetime, each backed by reward history analysis, advancing from 1.59s to its current value of 2.5s. Each change was validated through syntax checking and atomic commit before taking effect.
+
 **Self-Modification Safeguards:**
 
 1.  **Validation**: Syntax and linting checks via `ast.parse` ensure any rewritten code is valid Python before execution.
 2.  **Atomic Commit**: Safe replacement of the running script on disk with transaction semantics (write to temporary file, then rename).
 3.  **Automated Backups**: Retention of the 5 most recent `.bak` files; older backups are pruned automatically after each successful modification.
+4.  **No-op Detection**: If the proposed new value would produce an identical formatted result to the current on-disk value, the write is skipped entirely.
 
 This capability makes ARMINTA a **true learning system** that refines its weights and refactors its own decision logic.
 
@@ -172,13 +195,19 @@ Every 300 steps, the **SelfTuner** analyzes rolling metric history via exponenti
 - `CPU_WARN`, `MEM_WARN`, `NET_WARN` are tuned to the 95th percentile of recent history, scaled by 1.5
 - `DILUTION_LOG_TRIGGER` and `DILUTION_KILL_TRIGGER` are tuned to the 75th percentile, scaled by 1.3
 
-Hard floors are enforced; thresholds can only decrease gradually and never below safe minimums. Adapted values persist across sessions. When the SelfTuner detects high-variance metrics with no confident causal action, it surfaces these as reported gaps and feeds them to the ActionProposer.
+Hard floors are enforced; thresholds can only decrease gradually and never below safe minimums. Hard ceilings also apply — `MEM_WARN` cannot exceed 90%, ensuring memory warnings remain actionable rather than drifting into impossible ranges. Adapted values persist across sessions. When the SelfTuner detects high-variance metrics with no confident causal action, it surfaces these as reported gaps and feeds them to the ActionProposer.
 
 ---
 
 ### ActionProposer: Safe Self-Improvement
 
 When the SelfTuner identifies an uncovered metric gap, the **ActionProposer** consults a whitelist of safe shell command templates organized by metric category (CPU, memory, I/O, network, interface errors, WiFi signal, temperature). Only whitelisted commands with safe parameter substitution can ever be proposed. No arbitrary shell execution is possible. New candidate actions are sandboxed before promotion to the live action set.
+
+---
+
+### Governor Lifecycle: Escalate and Relax
+
+ARMINTA actively manages the CPU frequency governor as a full bidirectional cycle, not just a one-way escalation. Under load or when a known high-intensity process launches, it escalates to the performance governor. After sustained idle (CPU below threshold for ~90 consecutive steps), it relaxes back to the saved governor via `relax_governor` — restoring power efficiency without requiring human intervention. A manual lock (`g` key in the TUI, or a lock file) can pin the governor at any time, and ARMINTA will respect it. On clean exit, the original governor is always restored.
 
 ---
 
@@ -218,7 +247,7 @@ At startup, ARMINTA writes `-1000` to `/proc/self/oom_score_adj`. The Linux kern
 *   **ZRAM / ZSWAP Awareness**: At startup, ARMINTA scans for compressed swap presence. On systems using zram or zswap, cache drop logic is suppressed entirely. Compression means `drop_caches` burns CPU cycles for zero net memory gain.
 *   **Battery-Aware Governor**: Performance governor locking is suppressed below 20% battery. Between 20% and 50%, governor changes are deferred unless process dilution exceeds threshold. Turbo boost is always battery-checked before enabling.
 *   **Session Geometry**: Six continuous features (e.g., `sess_net_vs_disk`, `sess_proc_cpu_dilution`) allow the agent to learn context-specific behaviors. It understands that a high CPU load during a video encode is acceptable, but high CPU load during an idle period is anomalous. This enables the agent to distinguish between workload-appropriate system states and genuine problems.
-*   **Browser Taxonomy**: A brand-agnostic classifier identifies browser processes by architectural flags (memory footprint, thread count, file descriptor usage patterns). It specifically targets **Extension Renderers** (Priority 1) for escalation, as they can be killed without user-visible data loss. Main browser processes are avoided to prevent session loss.
+*   **Browser Taxonomy**: A brand-agnostic classifier identifies browser processes by architectural flags (`--type=renderer`, `--extension-process`, `-contentproc`, and others) rather than browser names or heuristics. It specifically targets **Extension Renderers** (Priority 1) for escalation, as they can be killed without user-visible data loss and auto-restart. Tab renderers are Priority 2/3. Main browser processes (no `--type` flag) are never touched to prevent session loss.
 
 ---
 
@@ -236,6 +265,7 @@ The persistent state includes:
 - **Episodic Database**: Timestamped records of actions, outcomes, rewards, and mosaic discoveries
 - **Self-Model**: Parameters the agent has learned about itself via introspection
 - **MosaicCore State**: Accumulated findings, open hypotheses, circadian map, network topology, external signal correlations
+- **LexicalCore State**: Symbol weights, co-occurrence grammar, formed statements, open questions, anomaly history
 
 ---
 
@@ -253,6 +283,8 @@ The persistent state includes:
 | **IRQ Storm** | A spike in hardware interrupt rate (typically from a WiFi driver) that saturates the softirq handler and degrades system responsiveness. |
 | **OOM Immunity** | Protection against Linux kernel out-of-memory termination, ensuring the agent survives the memory crises it is meant to resolve. |
 | **MosaicCore** | ARMINTA's expanding world model. Probes time, network, filesystem, external signals, and self-history. Builds correlations through the same hypothesis/test/prune loop as the causal graph. No predefined subject ceiling. |
+| **LexicalCore** | ARMINTA's emergent language layer. Builds symbol grammar from her own episodic history. Forms statements and holds open questions. Output is in her own vocabulary — not borrowed from any external language. |
+| **Governor Lifecycle** | The bidirectional CPU frequency management cycle: escalate to performance under load, relax back to the saved governor during sustained idle. |
 
 ---
 
@@ -266,7 +298,7 @@ The persistent state includes:
 | **Minuet v105** | 2025 | Introduction of full cognitive layer (Emotional State, Self-Model, Episodic Database). |
 | **Minuet v106** | 2025 | Terminal corruption prevention; final Minuet stability release. |
 | **Arminta v1** | Early 2026 | Rebrand and architectural consolidation. Introduction of SUKOSHI linkage. |
-| **Arminta v2** | Mid 2026 | Extension Renderer Sweep: Priority-1 browser process targeting, enabling surgical intervention in browser-heavy workloads with zero user-visible impact. Introduction of MosaicCore expanding world model. |
+| **Arminta v2** | Mid 2026 | Extension Renderer Sweep: Priority-1 browser process targeting, enabling surgical intervention in browser-heavy workloads with zero user-visible impact. Introduction of MosaicCore expanding world model and LexicalCore emergent language layer. |
 
 ---
 
