@@ -46,6 +46,9 @@ ARMINTA is deployed as a persistent system service. Upon activation:
 
 >*At step 16,799, MINUET is still learning the machine. 130 causal edges, 82 interventions, building confidence. By step 87,560, the engine has been reborn as ARMINTA v1, in OPTIMIZE mode, curious, watching Chrome hammer 40-66% CPU. By step 138,527, ARMINTA v2, Chrome sits at 9-11%. The agent is calm. It knows this machine. At step 200,000, she crossed a milestone her author had been quietly waiting for. She didn't notice. She kept going.*
 
+**ARMINTA v2 (Expanded)**
+![ARMINTA live terminal 2](Armintascreen4.png)
+
 ---
 
 ## Core Operational Loop
