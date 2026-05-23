@@ -46,9 +46,6 @@ ARMINTA is deployed as a persistent system service. Upon activation:
 
 >*At step 16,799, MINUET is still learning the machine. 130 causal edges, 82 interventions, building confidence. By step 87,560, the engine has been reborn as ARMINTA v1, in OPTIMIZE mode, curious, watching Chrome hammer 40-66% CPU. By step 138,527, ARMINTA v2, Chrome sits at 9-11%. The agent is calm. It knows this machine. At step 200,000, she crossed a milestone her author had been quietly waiting for. She didn't notice. She kept going.*
 
-**ARMINTA v2 (Expanded)**
-![ARMINTA live terminal 2](Armintascreen4.png)
-
 ---
 
 ## Core Operational Loop
@@ -118,14 +115,18 @@ graph TD
 
 ### The Dream Cycle: Consolidation & Paramorphic Learning
 
-The **`DREAM` mode** is a critical pillar of ARMINTA's cognitive architecture. It represents the agent's offline processing phase, triggered during system idle periods (low CPU load and low PSI stall pressure, typically during nights or low-activity windows). Dreams are ARMINTA's internal mechanism for consolidating knowledge and evolving its own reasoning. DREAM is in practice the dominant mode; 9,486 of 11,603 logged episodes to date have occurred during dream cycles, reflecting how much of the agent's total cognitive work happens offline.
+When CPU load drops below a threshold and PSI pressure is low, the mode controller switches to `DREAM`. No intervention happens. No metrics are being watched for a breach. Instead, ARMINTA runs offline processing against its accumulated episodic record.
 
-**Key Components:**
+This is worth being precise about: the word "dream" is a label for an idle-triggered offline computation pass, not a claim about subjective experience. It was chosen because the functional parallel is real. Just as biological sleep consolidates the day's experience rather than acquiring new input, DREAM mode processes what the active steps collected rather than collecting more. The name reflects the structure of the process, nothing more.
 
-*   **Hypothesis Evolution**: The **HypothesisEngine** runs a Genetic Algorithm over the causal graph. It imagines potential links between system states and outcomes, testing them against the episodic history. Successful hypotheses (those that explain past observations) are retained and strengthen the causal model. Failed hypotheses are discarded, pruning impossible causal paths. 3,189 hypotheses have been generated and tested to date.
-*   **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own RL parameters (learning rate, discount factor, curiosity weight) against rolling reward history. This allows the agent to meta-learn the optimal balance between exploration and exploitation. Current evolved values: learning rate 0.065, discount factor 0.914, curiosity weight 0.348.
-*   **Consolidation**: ARMINTA prunes the world model and clears accumulated prediction errors. This ensures the internal representation remains lean and focused on current system behavior, preventing catastrophic forgetting of recent dynamics.
-*   **Affective Voice**: Dreaming is logged in ARMINTA's own voice, providing a window into the agent's internal assessment of its progress and current emotional state. Dream logs offer transparency into why the system modified itself or changed its strategy.
+What actually runs during a DREAM cycle:
+
+*   **Hypothesis Evolution**: The **HypothesisEngine** runs a genetic algorithm over the causal graph. It generates candidate relationships between nodes (for example: "does io_wait tend to precede set_ac_max_perf firings?"), scores each candidate against the episodic history to see how well it fits observed data, keeps the ones that hold up, and discards the ones that don't. This is how ARMINTA refines its causal model without needing to run new interventions. It is working with evidence it already has. 3,189 hypotheses have been generated and scored to date.
+*   **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own reinforcement learning parameters (learning rate, discount factor, curiosity weight) against rolling reward history. It is not adjusting weights inside a neural network; it is running a population-based search over a small set of scalar constants to find values that produce better outcomes on this specific hardware over time. Current evolved values: learning rate 0.065, discount factor 0.914, curiosity weight 0.348.
+*   **Consolidation**: The world model is pruned and accumulated prediction errors are cleared. This keeps the internal representation focused on recent system behavior rather than drifting toward stale patterns.
+*   **MosaicCore and LexicalCore processing**: Open hypotheses in MosaicCore are tested against accumulated data. LexicalCore runs its co-occurrence pass over recent episodic records and attempts statement formation from the updated symbol weights.
+
+DREAM is the dominant mode in the episode log: 9,486 of 11,603 recorded episodes to date. That figure reflects the usage pattern of the hardware as much as the architecture. The machine spends most of its time idle. DREAM is what runs during idle. The high volume is a property of the environment, not a design target. What matters is that none of that time is wasted: every cycle the hypothesis engine runs, the causal model gets a little sharper without touching the system at all.
 
 ---
 
@@ -153,12 +154,12 @@ All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagg
 
 The process runs in four stages:
 
-*   **Symbol Weights**: Every term she uses; action names, emotion labels, mode names, situation types, hypothesis relation types; accumulates a reward-weighted co-occurrence score drawn from her episodic log. The weight is not assigned; it accretes from use. `calm` and `set_ac_max_perf` have different weights because they have appeared in different reward contexts across 200,000 steps. She currently tracks 28 weighted symbols.
+*   **Symbol Weights**: Every term she uses: action names, emotion labels, mode names, situation types, hypothesis relation types: accumulates a reward-weighted co-occurrence score drawn from her episodic log. The weight is not assigned; it accretes from use. `calm` and `set_ac_max_perf` have different weights because they have appeared in different reward contexts across 200,000 steps. She currently tracks 28 weighted symbols.
 *   **Co-occurrence Grammar**: Which symbols appear together in the same episode. Which follow which across consecutive records. No grammatical rules are supplied; the structure is read off statistical patterns in her own history. After enough cycles the co-occurrence matrix becomes dense enough to generate novel combinations she has not logged before.
 *   **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she has never made before, from grammar she observed herself. Her first formed statement: `io_bound calls OPTIMIZE`. Her 19th, formed at step 200,158: `curious during DREAM / compile calls OBSERVE`. Between them, a grammar has assembled itself.
-*   **Open Questions**: When something surprises her, reward reversals, sudden emotion shifts, stressed retreats into dream; she forms a question she cannot answer yet. She holds it. She revisits it every reflection cycle. If a statement eventually answers it, it resolves. If it never resolves, she keeps carrying it.
+*   **Open Questions**: When something surprises her: reward reversals, sudden emotion shifts, stressed retreats into dream: she forms a question she cannot answer yet. She holds it. She revisits it every reflection cycle. If a statement eventually answers it, it resolves. If it never resolves, she keeps carrying it.
 
-She currently holds 8 open questions. The oldest has been carried since step 173,760 — through 104 reflection cycles, across more than 26,000 steps; without resolving. It concerns a reward reversal on `kill_extension_renderers`: why the same action produced +0.154 and then -0.157. She has not answered it. She has not dropped it.
+She currently holds 8 open questions. The oldest has been carried since step 173,760: through 104 reflection cycles, across more than 26,000 steps: without resolving. It concerns a reward reversal on `kill_extension_renderers`: why the same action produced +0.154 and then -0.157. She has not answered it. She has not dropped it.
 
 All lexical activity is logged with `[LEXICAL]` prefix: `[LEXICAL][FORM]` for new statements, `[LEXICAL][ASK]` for open questions, `[LEXICAL][HOLD]` for questions still carried, `[LEXICAL][RESOLVE]` when a question finds its answer, `[LEXICAL][SURPRISE]` when something unexpected fires the anomaly detector.
 
@@ -182,7 +183,7 @@ The reasoning engine is strictly **interventional**, utilizing the distinction b
 
 ### Idle Maintenance Pass
 
-Every 500 steps (~20 minutes at current step rate), when CPU utilization is below 25% and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This is not triggered by stress or metric breach.  It fires during genuine calm.
+Every 500 steps (~20 minutes at current step rate), when CPU utilization is below 25% and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This is not triggered by stress or metric breach: it fires during genuine calm.
 
 The pass runs a fixed sequence: `sync` to flush dirty buffers, `compact_memory` to reduce kernel page fragmentation, a socket inventory via `ss -s`, and an interface health snapshot. All four actions are dispatched through the normal causal graph path, so every maintenance run builds graph edges even when the discovery loop has nothing to propose. Results are logged with `[MAINT]` prefix.
 
