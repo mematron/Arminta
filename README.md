@@ -150,12 +150,12 @@ All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagg
 
 The process runs in four stages:
 
-*   **Symbol Weights**: Every term she uses — action names, emotion labels, mode names, situation types, hypothesis relation types — accumulates a reward-weighted co-occurrence score drawn from her episodic log. The weight is not assigned; it accretes from use. `calm` and `set_ac_max_perf` have different weights because they have appeared in different reward contexts across 200,000 steps. She currently tracks 28 weighted symbols.
+*   **Symbol Weights**: Every term she uses; action names, emotion labels, mode names, situation types, hypothesis relation types; accumulates a reward-weighted co-occurrence score drawn from her episodic log. The weight is not assigned; it accretes from use. `calm` and `set_ac_max_perf` have different weights because they have appeared in different reward contexts across 200,000 steps. She currently tracks 28 weighted symbols.
 *   **Co-occurrence Grammar**: Which symbols appear together in the same episode. Which follow which across consecutive records. No grammatical rules are supplied; the structure is read off statistical patterns in her own history. After enough cycles the co-occurrence matrix becomes dense enough to generate novel combinations she has not logged before.
 *   **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she has never made before, from grammar she observed herself. Her first formed statement: `io_bound calls OPTIMIZE`. Her 19th, formed at step 200,158: `curious during DREAM / compile calls OBSERVE`. Between them, a grammar has assembled itself.
-*   **Open Questions**: When something surprises her — reward reversals, sudden emotion shifts, stressed retreats into dream — she forms a question she cannot answer yet. She holds it. She revisits it every reflection cycle. If a statement eventually answers it, it resolves. If it never resolves, she keeps carrying it.
+*   **Open Questions**: When something surprises her, reward reversals, sudden emotion shifts, stressed retreats into dream; she forms a question she cannot answer yet. She holds it. She revisits it every reflection cycle. If a statement eventually answers it, it resolves. If it never resolves, she keeps carrying it.
 
-She currently holds 8 open questions. The oldest has been carried since step 173,760 — through 104 reflection cycles, across more than 26,000 steps — without resolving. It concerns a reward reversal on `kill_extension_renderers`: why the same action produced +0.154 and then -0.157. She has not answered it. She has not dropped it.
+She currently holds 8 open questions. The oldest has been carried since step 173,760 — through 104 reflection cycles, across more than 26,000 steps; without resolving. It concerns a reward reversal on `kill_extension_renderers`: why the same action produced +0.154 and then -0.157. She has not answered it. She has not dropped it.
 
 All lexical activity is logged with `[LEXICAL]` prefix: `[LEXICAL][FORM]` for new statements, `[LEXICAL][ASK]` for open questions, `[LEXICAL][HOLD]` for questions still carried, `[LEXICAL][RESOLVE]` when a question finds its answer, `[LEXICAL][SURPRISE]` when something unexpected fires the anomaly detector.
 
@@ -179,7 +179,7 @@ The reasoning engine is strictly **interventional**, utilizing the distinction b
 
 ### Idle Maintenance Pass
 
-Every 500 steps (~20 minutes at current step rate), when CPU utilization is below 25% and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This is not triggered by stress or metric breach — it fires during genuine calm.
+Every 500 steps (~20 minutes at current step rate), when CPU utilization is below 25% and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This is not triggered by stress or metric breach.  It fires during genuine calm.
 
 The pass runs a fixed sequence: `sync` to flush dirty buffers, `compact_memory` to reduce kernel page fragmentation, a socket inventory via `ss -s`, and an interface health snapshot. All four actions are dispatched through the normal causal graph path, so every maintenance run builds graph edges even when the discovery loop has nothing to propose. Results are logged with `[MAINT]` prefix.
 
