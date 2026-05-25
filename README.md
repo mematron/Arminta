@@ -18,7 +18,7 @@ The agent operates continuously, learning which system interventions produce mea
 - **OS**: Linux (kernel 5.4+)
 - **Python**: 3.9+
 - **Privileges**: Root access (ARMINTA operates as a privileged background daemon)
-- **Dependencies**: Standard system utilities (`sysstat`, `cgroup` tools, Linux PSI support)
+- **Dependencies**: Python 3.9+, psutil, numpy, curses (stdlib). Standard Linux utilities used at runtime: iw, iwconfig, renice, ionice, ip, ss, ethtool, ping. PSI support requires kernel 4.20+.
 
 ### Installation & Deployment
 ARMINTA is deployed as a persistent system service. Upon activation:
