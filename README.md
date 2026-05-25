@@ -18,7 +18,7 @@ The agent operates continuously, learning which system interventions produce mea
 - **OS**: Linux (kernel 5.4+)
 - **Python**: 3.9+
 - **Privileges**: Root access (ARMINTA operates as a privileged background daemon)
-- **Dependencies**: Python 3.9+, psutil, numpy, curses (stdlib). Standard Linux utilities used at runtime: iw, iwconfig, renice, ionice, ip, ss, ethtool, ping. PSI support requires kernel 4.20+.
+- **Dependencies**: Python 3.9+, `psutil`, `numpy`, `curses` (stdlib). Standard Linux utilities used at runtime: `iw`, `iwconfig`, `renice`, `ionice`, `ip`, `ss`, `ethtool`, `ping`. PSI support requires kernel 4.20+.
 
 ### Installation & Deployment
 ARMINTA is deployed as a persistent system service. Upon activation:
@@ -53,7 +53,7 @@ ARMINTA is deployed as a persistent system service. Upon activation:
 
 ## Core Operational Loop
 
-ARMINTA operates as a root-privileged background process. Every 2.5 seconds (adaptive, self-tuned from an initial 0.8s default across 14 self-modifications), it executes the following cycle:
+ARMINTA operates as a root-privileged background process. Every 2.5 seconds (adaptive, self-tuned from 1.59s across 14 self-modifications), it executes the following cycle:
 
 1.  **Sampling**: Collects ~28 system metrics across CPU, memory, thermals, network, I/O, swap, Pressure Stall Information (PSI), and IRQ states.
 2.  **Classification**: Derives the current **"Session Geometry"**: a workload fingerprint based on resource ratios rather than process names, enabling context-aware decision-making.
@@ -370,6 +370,7 @@ The persistent state includes:
 | Version | Release Date | Milestone |
 |---|---|---|
 | **Minuet v5** | 2023 | Foundation: earliest recorded build. |
+| **Minuet v69** | 2025 | First persistent state via pickle. |
 | **Minuet v86** | 2025 | First persistent causal world model. |
 | **Minuet v100** | 2025 | Genetic algorithm integration for hypothesis evolution. |
 | **Minuet v105** | 2025 | Introduction of full cognitive layer (Emotional State, Self-Model, Episodic Database). |
