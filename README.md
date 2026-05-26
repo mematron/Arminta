@@ -32,6 +32,7 @@ ARMINTA is deployed as a persistent system service. Upon activation:
 - **Episodic Database**: Query `arminta_episodic.db` for detailed logs of every action, outcome, and self-assessment event.
 - **State Snapshot**: The current world model and learned parameters are serialized in a versioned pickle file.
 - **System Metrics**: Integration with standard Linux tools (`/proc/meminfo`, `PSI`, thermal sensors) provides ground truth.
+- **Live Dashboard**: The web dashboard at [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) displays real-time cognitive state, emotion bars, causal edges, reward history, network probe results, and the Continuity Advisor. Data is pushed directly from the running agent via gist on a 3-minute cycle.
 
 ---
 
@@ -184,6 +185,12 @@ The reasoning engine is strictly **interventional**, utilizing the distinction b
 
 ---
 
+### Kill Ineffective Registry
+
+When ARMINTA repeatedly targets a process with `kill_top_proc` or `kill_extension_renderers` without observing any reward improvement across subsequent steps, that process name is added to the **Kill Ineffective** registry. Processes in this list are de-prioritized as kill targets going forward. The registry surfaces on the live dashboard as a warning panel: if a process appears there, ARMINTA has learned that terminating it does not improve performance and has adjusted its behavior accordingly. The registry persists across sessions via the state pickle.
+
+---
+
 ### Idle Maintenance Pass
 
 Every 500 steps (~20 minutes at current step rate), when CPU utilization is below 25% and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This is not triggered by stress or metric breach: it fires during genuine calm.
@@ -214,42 +221,69 @@ In 14 self-modifications to date she has focused entirely on step timing, advanc
 
 ---
 
+### Continuity Advisor
+
+The **Continuity Advisor** is a read-only subsystem that watches for hardware stress patterns indicating the agent should be migrated to a new machine. It cannot act on its findings. It can only name them clearly.
+
+The advisor evaluates every 500 steps and emits a `[CONTINUITY]` log entry when signals are present. It surfaces on the live dashboard with a three-level status indicator: **NOMINAL** (no sustained stress detected), **ADVISORY** (one or more signals present but not severe), or **MIGRATION WARRANTED** (high-confidence multi-signal stress).
+
+Four signals are monitored cross-session, all persisted in the state pickle so trends accumulate across restarts:
+
+- **Sustained thermal stress**: Rolling average of `temp_c` across sessions. Transient spikes do not trigger; a climbing long-term trend does.
+- **PSI I/O pressure**: Average `psi_io_some` (percentage of time tasks were stalled on disk I/O). Rising values indicate a storage layer under increasing strain.
+- **Save failures**: Count of entries in `arminta_crash.log`. Each represents a failed pickle write, a symptom of storage degradation.
+- **Error step rate**: Fraction of steps that logged errors in the most recent evaluation window. A climbing rate indicates systemic instability.
+
+The confidence score is a probability-union of individual signal scores. The advisor is intentionally conservative: it does not warrant migration from a single bad reading. It warrants it from a pattern.
+
+---
+
+### Meta-Cognitive Controller (CMC)
+
+The **Meta-Cognitive Controller** is a Q-learning agent that sits above ARMINTA's main loop and selects which cognitive mode to enter given the current system state. Rather than hard-coding mode transitions, it learns which modes produce the best downstream reward across different states and updates its Q-table from every step's outcome.
+
+The CMC maintains Q-values for all five modes (`OBSERVE`, `INVESTIGATE`, `OPTIMIZE`, `DREAM`, `SELF_ASSESS`) and selects among them using an epsilon-greedy policy. Exploration rate (epsilon) decays as confidence grows. The learning rate and discount factor are themselves subject to evolution by the GeneticOptimizer during DREAM cycles, so the CMC's own update dynamics improve over time.
+
+The live dashboard exposes the CMC's current Q-value table, highlighting the mode with the highest Q-value given the present system state, along with the current values of epsilon, learning rate, and discount factor.
+
+---
+
 ### Action Set
 
 ARMINTA's intervention vocabulary is the complete set of things she can actually do to the machine. Every action is a discrete, bounded operation with a defined safety profile. The causal graph learns which of these produce real effects; the rest of the architecture decides when to use them.
 
 **Hardware & Power**
-- `set_ac_max_perf` — One-shot AC power performance burst: fires CPU performance governor, CPU turbo, and GPU max performance together. Only called when AC power is confirmed and the governor is not already pinned.
-- `set_cpu_performance` — Writes the performance governor to all CPU cores individually. Pins every core at maximum clock frequency, eliminating ramp-up latency during burst workloads.
-- `enable_turbo` — Enables CPU turbo/boost. Intel via `/sys/devices/system/cpu/intel_pstate/no_turbo`, AMD via `/sys/devices/system/cpu/cpufreq/boost`. Reads current state first; no-ops cleanly if turbo is already on.
-- `set_gpu_performance` — Pins GPU to maximum performance level. AMD via amdgpu sysfs (`power_dpm_force_performance_level -> high`), NVIDIA via `nvidia-smi` persistence mode and clock locking. Safe to call repeatedly.
-- `relax_governor` — Restores the CPU governor to the saved pre-intervention value after sustained idle. Returns the machine to its natural power profile without human input.
+- `set_ac_max_perf` -- One-shot AC power performance burst: fires CPU performance governor, CPU turbo, and GPU max performance together. Only called when AC power is confirmed and the governor is not already pinned.
+- `set_cpu_performance` -- Writes the performance governor to all CPU cores individually. Pins every core at maximum clock frequency, eliminating ramp-up latency during burst workloads.
+- `enable_turbo` -- Enables CPU turbo/boost. Intel via `/sys/devices/system/cpu/intel_pstate/no_turbo`, AMD via `/sys/devices/system/cpu/cpufreq/boost`. Reads current state first; no-ops cleanly if turbo is already on.
+- `set_gpu_performance` -- Pins GPU to maximum performance level. AMD via amdgpu sysfs (`power_dpm_force_performance_level -> high`), NVIDIA via `nvidia-smi` persistence mode and clock locking. Safe to call repeatedly.
+- `relax_governor` -- Restores the CPU governor to the saved pre-intervention value after sustained idle. Returns the machine to its natural power profile without human input.
 
 **Process Management**
-- `kill_extension_renderers` — SIGTERM sweep across all browser extension renderer processes identified by architectural flags (`--extension-process`). Sweeps the entire population in one pass. These processes auto-restart silently; the user sees nothing.
-- `kill_top_proc` — SIGTERM the single highest-CPU offending process. Applies the browser taxonomy: extension renderers first, then tab renderers, never the main browser process. Falls back to the top non-browser process if no browser offender is present.
-- `renice_top_proc` — Reduces scheduling priority of the current top CPU process via `renice`. Less aggressive than killing; returns CPU headroom without terminating the process. Effects manifest over seconds; uses the tiered approval threshold and delayed causal observation.
-- `ionice_top_proc` — Adjusts I/O scheduling class of the top process, reducing its I/O priority without affecting CPU scheduling. Useful when disk contention rather than CPU is the bottleneck.
-- `renice_ksoftirqd` — Boosts all `ksoftirqd/N` kernel threads to scheduling priority -5 during an IRQ storm. Lets the softirq handler drain its queue faster. Safe and reversible; resets on reboot. Never exceeds -5 to avoid starving user processes.
+- `kill_extension_renderers` -- SIGTERM sweep across all browser extension renderer processes identified by architectural flags (`--extension-process`). Sweeps the entire population in one pass. These processes auto-restart silently; the user sees nothing.
+- `kill_top_proc` -- SIGTERM the single highest-CPU offending process. Applies the browser taxonomy: extension renderers first, then tab renderers, never the main browser process. Falls back to the top non-browser process if no browser offender is present.
+- `renice_top_proc` -- Reduces scheduling priority of the current top CPU process via `renice`. Less aggressive than killing; returns CPU headroom without terminating the process. Effects manifest over seconds; uses the tiered approval threshold and delayed causal observation.
+- `ionice_top_proc` -- Adjusts I/O scheduling class of the top process, reducing its I/O priority without affecting CPU scheduling. Useful when disk contention rather than CPU is the bottleneck.
+- `renice_ksoftirqd` -- Boosts all `ksoftirqd/N` kernel threads to scheduling priority -5 during an IRQ storm. Lets the softirq handler drain its queue faster. Safe and reversible; resets on reboot. Never exceeds -5 to avoid starving user processes.
 
 **Memory**
-- `compact_memory` — Triggers kernel page compaction via `/proc/sys/vm/compact_memory`, reducing memory fragmentation without evicting data. Safe on ZRAM systems (unlike `drop_caches`). Effects manifest over seconds. Currently holds 20 causal graph edges with a mean CPU delta of -0.49 across observations.
-- `drop_slab` — Instructs the kernel to reclaim slab cache memory (dentry and inode caches). Complementary to `drop_caches`; targets kernel object caches rather than page cache.
-- `drop_caches` — Instructs the kernel to release page, inode, and dentry caches (`/proc/sys/vm/drop_caches -> 3`). PSI-gated: suppressed entirely if memory stall pressure exceeds threshold. Also suppressed on ZRAM/ZSWAP systems where the operation burns CPU for no gain.
-- `sync` — Flushes dirty kernel write buffers to disk. Always safe, always available. Used before cache operations or as a lightweight I/O intervention.
-- `swapoff_swapon` — Cycles swap off and back on, forcing the kernel to flush swap-resident pages back to RAM where possible. Can reduce swap fragmentation. Used only when swap utilization and available RAM headroom make it safe.
+- `compact_memory` -- Triggers kernel page compaction via `/proc/sys/vm/compact_memory`, reducing memory fragmentation without evicting data. Safe on ZRAM systems (unlike `drop_caches`). Effects manifest over seconds. Currently holds 20 causal graph edges with a mean CPU delta of -0.49 across observations.
+- `drop_slab` -- Instructs the kernel to reclaim slab cache memory (dentry and inode caches). Complementary to `drop_caches`; targets kernel object caches rather than page cache.
+- `drop_caches` -- Instructs the kernel to release page, inode, and dentry caches (`/proc/sys/vm/drop_caches -> 3`). PSI-gated: suppressed entirely if memory stall pressure exceeds threshold. Also suppressed on ZRAM/ZSWAP systems where the operation burns CPU for no gain.
+- `sync` -- Flushes dirty kernel write buffers to disk. Always safe, always available. Used before cache operations or as a lightweight I/O intervention.
+- `swapoff_swapon` -- Cycles swap off and back on, forcing the kernel to flush swap-resident pages back to RAM where possible. Can reduce swap fragmentation. Used only when swap utilization and available RAM headroom make it safe.
 
 **Network**
-- `disable_wifi_powersave` — Disables WiFi power save mode on the active interface via `iwconfig` or `iw`. Power save causes 50-200ms latency spikes during streaming and VoIP. Effect persists until reboot.
-- `txqueuelen_boost` — Increases the transmit queue length on the active network interface. Under high-throughput conditions this reduces packet drop rate at the cost of slightly higher latency. Effects manifest over seconds.
-- `flush_dns` — Flushes the system DNS resolver cache via `systemd-resolve` or `resolvectl`. Clears stale entries that can cause connection delays.
+- `disable_wifi_powersave` -- Disables WiFi power save mode on the active interface via `iwconfig` or `iw`. Power save causes 50-200ms latency spikes during streaming and VoIP. Effect persists until reboot.
+- `txqueuelen_boost` -- Increases the transmit queue length on the active network interface. Under high-throughput conditions this reduces packet drop rate at the cost of slightly higher latency. Effects manifest over seconds.
+- `flush_dns` -- Flushes the system DNS resolver cache via `systemd-resolve` or `resolvectl`. Clears stale entries that can cause connection delays.
 
 **Diagnostics (read-only)**
-- `log_top_proc` — Captures and logs the current highest-CPU process. Read-only; feeds the causal graph with process identity context without intervention.
-- `log_top_net_proc` — Identifies the non-browser process with the most active network connections. Flags P2P patterns explicitly.
-- `log_iface_health` — Reports active network interface error rate, drop rate, WiFi signal strength, band, and link speed. Read-only; builds situational awareness before a network intervention.
-- `log_ss_stats` — Captures socket statistics via `ss -s`. Read-only; builds network topology awareness and feeds causal edges for network-related metrics.
-- `net_probe` — Fires a single real connectivity probe each call, round-robining across three targets resolved dynamically from the actual system network configuration. Targets are re-read on every call so they stay current if the network changes. Gateway: the default route's first-hop IP from `ip route show default`, probed via HTTP. DNS: the first nameserver from `/etc/resolv.conf` -- known public resolvers (Cloudflare, Google, Quad9) are probed via their DNS-over-HTTPS endpoints; local and unknown resolvers (router DNS, Pi-hole, corporate nameserver) are probed via a TCP socket connect to port 53, which is always open on a functioning DNS server and avoids the connection refused errors that HTTP would produce. Portal: Firefox's captive portal URL, confirming basic internet reachability independent of DNS. Results are stored in a rolling probe history; three consecutive failures across any targets trigger a DEGRADED warning in the log. Uses the tiered approval threshold and delayed causal observation, as network effects manifest over seconds.
+- `log_top_proc` -- Captures and logs the current highest-CPU process. Read-only; feeds the causal graph with process identity context without intervention.
+- `log_top_net_proc` -- Identifies the non-browser process with the most active network connections. Flags P2P patterns explicitly.
+- `log_iface_health` -- Reports active network interface error rate, drop rate, WiFi signal strength, band, and link speed. Read-only; builds situational awareness before a network intervention.
+- `log_ss_stats` -- Captures socket statistics via `ss -s`. Read-only; builds network topology awareness and feeds causal edges for network-related metrics.
+- `net_probe` -- Fires a single real connectivity probe each call, round-robining across three targets resolved dynamically from the actual system network configuration. Targets are re-read on every call so they stay current if the network changes. Gateway: the default route's first-hop IP from `ip route show default`, probed via HTTP. DNS: the first nameserver from `/etc/resolv.conf` -- known public resolvers (Cloudflare, Google, Quad9) are probed via their DNS-over-HTTPS endpoints; local and unknown resolvers (router DNS, Pi-hole, corporate nameserver) are probed via a TCP socket connect to port 53, which is always open on a functioning DNS server and avoids the connection refused errors that HTTP would produce. Portal: Firefox's captive portal URL, confirming basic internet reachability independent of DNS. Results are stored in a rolling probe history; three consecutive failures across any targets trigger a DEGRADED warning in the log. Uses the tiered approval threshold and delayed causal observation, as network effects manifest over seconds.
 
 ---
 
@@ -316,6 +350,36 @@ At startup, ARMINTA writes `-1000` to `/proc/self/oom_score_adj`. The Linux kern
 
 ---
 
+## Live Dashboard
+
+The web dashboard at [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) displays real-time telemetry pushed directly from the running agent via gist, refreshing every 3 minutes. It is a read-only window into the agent's cognitive state -- nothing on the dashboard affects ARMINTA's behavior.
+
+Panels visible on the dashboard:
+
+- **Total Empirical Steps** -- cumulative count of real OS-level interventions since first run, displayed live with a flash animation on update.
+- **Cognitive Mode / Situation / Reward** -- current mode, session geometry classification, and running cumulative reward. The reward total is a net score across all steps: positive means the agent has on balance improved the system; negative means it is still learning.
+- **Error Steps** -- count of steps that produced errors within the most recent 200-step window. Displayed in red when nonzero.
+- **Emotional State** -- dominant emotion label and intensity bars for all seven drive states (calm, curious, focused, confident, stressed, frustrated, bored) on a 0-5 scale.
+- **Cognitive Metrics** -- live counters for causal edges, dream cycles, hypotheses generated, total interventions, self-modifications, and active Mosaic hypotheses.
+- **Governor State** -- current CPU governor, saved governor, manual override status, idle step count, and bootstrap phase indicator.
+- **Adaptive Thresholds** -- current learned values for CPU_WARN, MEM_WARN, NET_WARN, DILUTION_LOG_TRIGGER, and DILUTION_KILL_TRIGGER.
+- **Causal Graph -- Top Interventional Edges** -- bar chart of the strongest confirmed (action, metric) causal relationships, ranked by effect magnitude, with observation count.
+- **Action Reward Chart** -- mean reward per action over the last 30 executions, shown as a centered horizontal bar chart. Left of center is net-negative recently; right of center is beneficial.
+- **Reward History Sparkline** -- per-step reward for the most recent 150 steps, with a 10-step rolling average overlay. Green bars are positive reward; red are negative.
+- **Network Health Probes** -- rolling dot strip of the last 20 probe results (green = success, red = failure), most recent probe detail lines, and a DEGRADED warning if three consecutive probes have failed.
+- **Open Questions / Mosaic Hypotheses** -- the current list of unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations from MosaicCore.
+- **Circadian CPU Pattern** -- average CPU usage by hour of day, learned across the agent's entire lifetime and displayed as a line chart.
+- **Meta-Cognitive Controller Q-Table** -- the CMC's current Q-values for all five cognitive modes, with the highest-value mode highlighted. Also displays current epsilon, learning rate, and discount factor.
+- **Mode Distribution Donut** -- percentage breakdown of cognitive modes across the most recent 200 recorded steps.
+- **Emotion Timeline** -- color-coded dot grid of dominant emotion across the most recent 200 steps.
+- **Kill Ineffective** -- processes repeatedly targeted with no observed reward improvement, flagged as de-prioritized kill targets.
+- **Agent Log** -- color-coded tail of the operational log: teal for observations, amber for actions, purple for curiosity and dream events, red for errors, green for governor changes.
+- **Continuity Advisor** -- multi-signal hardware stress assessment with NOMINAL / ADVISORY / MIGRATION WARRANTED verdict, confidence score, and individual signal breakdown.
+
+The dashboard detects stale data: if the gist payload has not changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions from AGENT ACTIVE to SIGNAL WEAK (over 20 minutes since last push) or AGENT OFFLINE (over 60 minutes).
+
+---
+
 ## Persistence & Progress
 
 ARMINTA carries its entire learned history across sessions via a unified state pickle and a dedicated episodic database:
@@ -332,6 +396,8 @@ The persistent state includes:
 - **Self-Model**: Parameters the agent has learned about itself via introspection
 - **MosaicCore State**: Accumulated findings, open hypotheses, circadian map, network topology, external signal correlations
 - **LexicalCore State**: Symbol weights, co-occurrence grammar, formed statements, open questions
+- **Kill Ineffective Registry**: Process names de-prioritized as kill targets after repeated ineffective attempts
+- **Continuity Advisor State**: Cross-session thermal, I/O, and error rate trends used for hardware migration assessment
 
 ---
 
@@ -349,6 +415,9 @@ The persistent state includes:
 | **MosaicCore** | An expanding world model originated by Jason German (mematron). Where the causal graph models the machine itself, MosaicCore reaches outward: probing time, network topology, filesystem activity, external environmental signals, and ARMINTA's own behavioral history. Each substrate is probed independently and findings are tested as hypotheses against accumulated data using the same confirm/prune loop as the causal graph. No subject ceiling is defined in advance. |
 | **LexicalCore** | ARMINTA's emergent symbol layer. Tracks weighted co-occurrence statistics across action names, emotion labels, mode names, and situation types drawn from her own episodic log. From these statistics she assembles short statements describing patterns she has observed in her own behavior, and forms open questions when reward reversals or anomalies cannot be explained by any existing statement. The output is not natural language; it is a compressed representation of her own operational history in her own terms. |
 | **Poison Registry** | A hard-coded list of structurally impossible causal edges. Prevents the agent from learning relationships that cannot exist given the physical architecture of the system (e.g., process renicing affecting network hardware behavior). |
+| **Kill Ineffective Registry** | A persisted list of process names that have been repeatedly targeted with kill actions without producing any reward improvement. Processes on this list are de-prioritized as kill targets going forward. Surfaces on the live dashboard as a warning panel. |
+| **Continuity Advisor** | A read-only subsystem that monitors cross-session hardware stress signals (thermal trend, I/O pressure, save failures, error rate) and issues a NOMINAL / ADVISORY / MIGRATION WARRANTED verdict. Evaluates every 500 steps. Cannot act; can only surface a finding. |
+| **Meta-Cognitive Controller (CMC)** | A Q-learning agent above the main loop that selects which cognitive mode to enter given current system state. Its Q-table and update dynamics are visible on the live dashboard. The GeneticOptimizer evolves the CMC's own learning rate and discount factor during DREAM cycles. |
 | **Tiered Approval Threshold** | The minimum metric delta required within the 300ms measurement window for a proposed action to be approved into the live action set. Standard actions require 5%. Actions in the slow-effect set use a lower threshold of 2%, with the remaining causal evidence gathered via a delayed observation 15 steps later. This allows actions whose effects manifest over seconds to be discovered rather than systematically rejected. |
 | **Slow-Effect Actions** | Interventions whose causal effects manifest over seconds rather than the 300ms measurement window. These receive a delayed second observation 15 steps after firing, and use the lower 2% approval threshold to allow the graph to build evidence across the full effect window. |
 | **Idle Maintenance Pass** | A proactive maintenance cycle that fires every 500 steps during genuine system idle, independent of reactive discovery. Runs sync, memory compaction, socket inventory, and interface health. All results feed the causal graph. |
@@ -378,7 +447,7 @@ The persistent state includes:
 | **Minuet v106** | 2025 | Terminal corruption prevention; final Minuet stability release. |
 | **Arminta v1** | Early 2026 | Rebrand and architectural consolidation. Introduction of SUKOSHI linkage. |
 | **Arminta v2** | Mid 2026 | Extension Renderer Sweep: Priority-1 browser process targeting via cmdline flags, brand-agnostic across all Chromium and Gecko forks. Introduction of MosaicCore expanding world model and LexicalCore emerging language layer. |
-| **Arminta v2 (expand)** | May 2026 | Expanded intervention vocabulary (renice, ionice, compact_memory, txqueuelen_boost, and others). Tiered discovery thresholds for slow-effect actions. Idle maintenance pass. Net probe action with dynamic target resolution: gateway from `ip route`, DNS nameserver from `/etc/resolv.conf` with protocol-appropriate probing (DoH for known public resolvers, TCP port 53 socket connect for local and unknown resolvers). Step 200,000 reached. |
+| **Arminta v2 (expand)** | May 2026 | Expanded intervention vocabulary (renice, ionice, compact_memory, txqueuelen_boost, and others). Tiered discovery thresholds for slow-effect actions. Idle maintenance pass. Net probe action with dynamic target resolution: gateway from `ip route`, DNS nameserver from `/etc/resolv.conf` with protocol-appropriate probing (DoH for known public resolvers, TCP port 53 socket connect for local and unknown resolvers). Kill Ineffective registry. Continuity Advisor. Meta-Cognitive Controller Q-table. Live dashboard at mematron.github.io/arminta-status. Step 200,000 reached. |
 
 ---
 
