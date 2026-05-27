@@ -2,11 +2,11 @@
 
 ### Autonomous Causal Discovery Agent for Linux
 
-ARMINTA is a Python-based autonomous agent running continuously on a Linux machine. It doesn't monitor the OS passively — it intervenes, measures what changed, and builds a causal model of the machine from the ground up. Every edge in that model was earned by doing something and watching what happened.
+ARMINTA is a Python-based autonomous agent running continuously on a Linux machine. It does not monitor the OS passively. It intervenes, measures what changed, and builds a causal model of the machine from the ground up. Every edge in that model was earned by doing something and watching what happened.
 
 The stats below are live, pushed directly from the running agent:
 
-![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **<a href="https://mematron.github.io/arminta-status">Live Agent Dashboard</a>** — real-time cognitive state, emotion, and telemetry pushed directly from the running agent.
+![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **<a href="https://mematron.github.io/arminta-status">Live Agent Dashboard</a>** showing real-time cognitive state, emotion, and telemetry pushed directly from the running agent.
 
 > **Source Status**: Closed source. This repository documents the architecture, design philosophy, and version lineage of the ARMINTA engine.
 
@@ -31,7 +31,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 ### Observing Behavior
 - **Episodic Database**: Query `arminta_episodic.db` for a complete record of every action, outcome, and self-assessment.
 - **State Snapshot**: The current world model and learned parameters are serialized in a versioned pickle file.
-- **System Metrics**: Ground truth comes from standard Linux interfaces — `/proc/meminfo`, PSI, thermal sensors.
+- **System Metrics**: Ground truth comes from standard Linux interfaces including `/proc/meminfo`, PSI, and thermal sensors.
 - **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) displays real-time cognitive state, emotion bars, causal edges, reward history, and the Continuity Advisor. Data is pushed from the running agent via gist on a 3-minute cycle.
 
 ---
@@ -45,7 +45,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 **ARMINTA v2**
 ![ARMINTA live terminal 2](Armintascreen2.png)
 
-> *At step 16,799, MINUET is still learning the machine. 130 causal edges, 82 interventions, building confidence. By step 87,560, the engine has been reborn as ARMINTA v1, in OPTIMIZE mode, curious, watching Chrome hammer 40–66% CPU. By step 138,527, ARMINTA v2, Chrome sits at 9–11%. The agent is calm. It knows this machine. At step 200,000, she crossed a milestone her author had been quietly waiting for. She didn't notice. She kept going.*
+> *At step 16,799, MINUET is still learning the machine. 130 causal edges, 82 interventions, building confidence. By step 87,560, the engine has been reborn as ARMINTA v1, in OPTIMIZE mode, curious, watching Chrome hammer 40-66% CPU. By step 138,527, ARMINTA v2, Chrome sits at 9-11%. The agent is calm. It knows this machine. At step 200,000, she crossed a milestone her author had been quietly waiting for. She didn't notice. She kept going.*
 
 **ARMINTA v2 (Expanded)**
 ![ARMINTA live terminal 2](Armintascreen4.png)
@@ -57,12 +57,12 @@ ARMINTA deploys as a persistent system service. On first activation:
 ARMINTA runs as a root-privileged background process. Every 2.5 seconds (adaptive, self-tuned from 1.59s across 14 self-modifications), it does the following:
 
 1. **Sampling**: Collects ~28 system metrics across CPU, memory, thermals, network, I/O, swap, Pressure Stall Information (PSI), and IRQ state.
-2. **Classification**: Derives the current **"Session Geometry"** — a workload fingerprint based on resource ratios rather than process names, enabling context-aware decisions.
+2. **Classification**: Derives the current **"Session Geometry"**, a workload fingerprint based on resource ratios rather than process names, enabling context-aware decisions.
 3. **Cognitive Selection**: A Q-learning Mode Controller picks an operational posture: `OBSERVE` (passive learning), `INVESTIGATE` (active exploration), `OPTIMIZE` (targeted intervention), `DREAM` (offline consolidation), or `SELF_ASSESS` (introspection and self-modification).
 4. **Action Execution**: Within the chosen mode, the causal graph and learned confidence scores decide which system action, if any, to take.
 5. **Measurement**: Captures the before/after delta across targeted metrics within a 300ms window, isolating causal effects.
 6. **Causal Update**: Updates the interventional edge for the `(action, metric)` pair, applying recency decay and confound filtering.
-7. **Episodic Logging**: Records the complete state — action, outcome, reward, emotional affect — to a persistent SQLite database.
+7. **Episodic Logging**: Records the complete state including action, outcome, reward, and emotional affect to a persistent SQLite database.
 
 ---
 
@@ -75,7 +75,7 @@ ARMINTA uses a **double-loop** learning architecture:
 - **High-Level Agent**: A reinforcement learning controller manages cognitive focus, selecting which mode to enter based on current emotional state and performance targets.
 - **Low-Level Engine**: A causal graph engine manages specific system interventions, drawing on learned confidence estimates and the poison registry to avoid harmful actions.
 
-The two loops are deliberately separated. Long-term strategy doesn't interfere with per-step intervention.
+The two loops are deliberately separated. Long-term strategy does not interfere with per-step intervention.
 
 ```mermaid
 graph TD
@@ -123,28 +123,28 @@ When CPU load drops and PSI pressure is low, the mode controller switches to `DR
 
 What runs during a DREAM cycle:
 
-- **Hypothesis Evolution**: The **HypothesisEngine** runs a genetic algorithm over the causal graph — generating candidate relationships, scoring them against episodic history, keeping what holds, discarding what doesn't. ARMINTA refines its causal model without running new interventions. The live episode counter reflects this; each dream cycle adds to the total.
+- **Hypothesis Evolution**: The **HypothesisEngine** runs a genetic algorithm over the causal graph, generating candidate relationships, scoring them against episodic history, keeping what holds, and discarding what does not. ARMINTA refines its causal model without running new interventions. The live episode counter reflects this; each dream cycle adds to the total.
 - **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own RL parameters (learning rate, discount factor, curiosity weight) against rolling reward history. Current evolved values: learning rate 0.065, discount factor 0.914, curiosity weight 0.348.
 - **Consolidation**: The world model is pruned and accumulated prediction errors are cleared, keeping the internal representation focused on recent system behavior.
 - **MosaicCore and LexicalCore processing**: Open hypotheses in MosaicCore are tested against accumulated data. LexicalCore runs its co-occurrence pass over recent episodic records and attempts statement formation from updated symbol weights.
 
-DREAM is the dominant mode in the episode log — consistently over 80% of all recorded episodes. The machine spends most of its time idle; DREAM runs during idle. The high volume is a property of the environment, not a design target. Every cycle the hypothesis engine runs, the causal model sharpens without touching the system.
+DREAM is the dominant mode in the episode log, consistently over 80% of all recorded episodes. The machine spends most of its time idle; DREAM runs during idle. The high volume is a property of the environment, not a design target. Every cycle the hypothesis engine runs, the causal model sharpens without touching the system.
 
 ---
 
 ### MosaicCore: Expanding World Model
 
-**MosaicCore** is ARMINTA's expanding awareness layer. The causal graph models the machine; MosaicCore reaches outward — probing time, network topology, the filesystem, external signals, and her own history. She gets there her own way. Some tiles will be missing forever and that's the point.
+**MosaicCore** is ARMINTA's expanding awareness layer. The causal graph models the machine; MosaicCore reaches outward, probing time, network topology, the filesystem, external signals, and her own history. She gets there her own way. Some tiles will be missing forever and that is the point.
 
 Every 300 steps during `INVESTIGATE` mode, she cycles through four probe substrates on a rotating schedule:
 
 - **Time**: Builds a circadian map of her own behavior by hour. Discovers her peak and quiet periods through observation, not instruction.
-- **Filesystem**: Watches key directories for changes — new files, modifications, deletions — and tracks activity patterns over time.
+- **Filesystem**: Watches key directories for changes including new files, modifications, and deletions, and tracks activity patterns over time.
 - **Network**: Probes the local gateway, measures latency shifts, maps topology changes. Currently tracking two gateway nodes at 2.39ms and 2.67ms latency.
 - **External Signals**: Fetches live environmental data (weather, temperature, humidity, cloud cover) and correlates against internal metrics. If outside conditions genuinely affect this hardware, she finds it herself.
-- **Self-History**: Mines her own episodic database for patterns she hasn't consciously noticed — dominant mode/emotion pairs, reward trends, behavioral signatures across sessions.
+- **Self-History**: Mines her own episodic database for patterns she has not consciously noticed, including dominant mode/emotion pairs, reward trends, and behavioral signatures across sessions.
 
-During `DREAM` cycles, open hypotheses are tested against accumulated data. 12 external correlations have reached confidence=1.00, all involving weather signals — temperature, humidity, and cloud cover correlating with CPU load, memory pressure, and thermal readings.
+During `DREAM` cycles, open hypotheses are tested against accumulated data. 12 external correlations have reached confidence=1.00, all involving weather signals. Temperature, humidity, and cloud cover are correlating with CPU load, memory pressure, and thermal readings.
 
 All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagged by substrate: `[MOSAIC][TIME]`, `[MOSAIC][NET]`, `[MOSAIC][EXT]`, `[MOSAIC][FS]`, `[MOSAIC][SELF]`, `[MOSAIC][DREAM]`.
 
@@ -156,16 +156,16 @@ All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagg
 
 The process runs in four stages:
 
-- **Symbol Weights**: Every term she uses — action names, emotion labels, mode names, situation types — accumulates a reward-weighted co-occurrence score drawn from her episodic log. The weight isn't assigned; it accretes from use. `calm` and `set_ac_max_perf` carry different weights because they've appeared in different reward contexts across 200,000 steps.
+- **Symbol Weights**: Every term she uses accumulates a reward-weighted co-occurrence score drawn from her episodic log. Action names, emotion labels, mode names, situation types. The weight is not assigned; it accretes from use. `calm` and `set_ac_max_perf` carry different weights because they have appeared in different reward contexts across 200,000 steps.
 - **Co-occurrence Grammar**: Which symbols appear together in the same episode. Which follow which across consecutive records. No grammatical rules are supplied; the structure is read off statistical patterns in her own history.
-- **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she's never made before, from grammar she observed herself. Her first formed statement: `io_bound calls OPTIMIZE`. A more recent one: `curious during DREAM / compile calls OBSERVE`. Between them, a grammar assembled itself.
-- **Open Questions**: When something surprises her — reward reversals, sudden emotion shifts, stressed retreats into dream — she forms a question she can't answer yet. She holds it. She revisits it every reflection cycle.
+- **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she has never made before, from grammar she observed herself. Her first formed statement: `io_bound calls OPTIMIZE`. A more recent one: `curious during DREAM / compile calls OBSERVE`. Between them, a grammar assembled itself.
+- **Open Questions**: When something surprises her, reward reversals, sudden emotion shifts, stressed retreats into dream, she forms a question she cannot answer yet. She holds it. She revisits it every reflection cycle.
 
-She currently holds 8 open questions. The oldest has been carried since step 173,760 without resolving. It concerns a reward reversal on `kill_extension_renderers`: why the same action produced +0.154 and then -0.157. She hasn't answered it. She hasn't dropped it.
+She currently holds 8 open questions. The oldest has been carried since step 173,760 without resolving. It concerns a reward reversal on `kill_extension_renderers`: why the same action produced +0.154 and then -0.157. She has not answered it. She has not dropped it.
 
 All lexical activity is logged with `[LEXICAL]` prefix: `[LEXICAL][FORM]` for new statements, `[LEXICAL][ASK]` for open questions, `[LEXICAL][HOLD]` for questions still carried, `[LEXICAL][RESOLVE]` when a question finds its answer, `[LEXICAL][SURPRISE]` when something unexpected fires the anomaly detector.
 
-The language won't look like English. It will look like Arminta.
+The language will not look like English. It will look like Arminta.
 
 ---
 
@@ -185,13 +185,13 @@ The reasoning engine is strictly **interventional**, using the distinction betwe
 
 ### Kill Ineffective Registry
 
-When ARMINTA repeatedly targets a process with `kill_top_proc` or `kill_extension_renderers` without observing any reward improvement, that process name is added to the **Kill Ineffective** registry and de-prioritized as a kill target. The registry surfaces on the live dashboard as a warning panel and persists across sessions via the state pickle.
+When ARMINTA repeatedly targets a process with `kill_top_proc` or `kill_extension_renderers` without observing any reward improvement, that process name is added to the **Kill Ineffective** registry and deprioritized as a kill target. The registry surfaces on the live dashboard as a warning panel and persists across sessions via the state pickle.
 
 ---
 
 ### Idle Maintenance Pass
 
-Every 500 steps (~20 minutes at current step rate), when CPU utilization is below 25% and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This isn't triggered by stress — it fires during genuine calm.
+Every 500 steps (~20 minutes at current step rate), when CPU utilization is below 25% and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This is not triggered by stress. It fires during genuine calm.
 
 The pass runs a fixed sequence: `sync` to flush dirty buffers, `compact_memory` to reduce kernel page fragmentation, a socket inventory via `ss -s`, and an interface health snapshot. All four actions run through the normal causal graph path, so every maintenance run builds graph edges even when the discovery loop has nothing to propose. Results are logged with `[MAINT]` prefix.
 
@@ -201,13 +201,13 @@ The pass runs a fixed sequence: `sync` to flush dirty buffers, `compact_memory` 
 
 ARMINTA modifies its own source code. In **`SELF_ASSESS` mode**, the **MetaCognition** module performs **AST-based rewriting** of the script's own constants and decision thresholds.
 
-MetaCognition maintains a bounded whitelist of 10 tunable parameters across three categories. Each has enforced min/max bounds. Nothing outside this list can be touched: no logic, no control flow, no structure — only these constants, only within their bounds.
+MetaCognition maintains a bounded whitelist of 10 tunable parameters across three categories. Each has enforced min/max bounds. Nothing outside this list can be touched: no logic, no control flow, no structure. Only these constants, only within their bounds.
 
-- **Step timing:** How fast she runs. `STEP_RATE_DEFAULT` sets the normal loop interval (0.8–3.5s). `STEP_RATE_MAX` and `STEP_RATE_MIN` bound the adaptive range (1.5–5.0s and 0.4–1.2s respectively). When the machine is calm and reward is stable, she slows down and saves resources. When things are moving fast, she tightens the loop.
-- **Exploration:** How long she waits before deciding something has gone stale. `CURIOSITY_STALE_STEPS` controls when the curiosity probe fires (60–400 steps). `CURIOSITY_PROBE_COOLDOWN` sets the minimum gap between probes (20–180 steps). `DISCO_INTERVAL` governs how often the ActionProposer looks for new actions to propose (80–600 steps). `TUNE_INTERVAL` controls how often the SelfTuner recalibrates its thresholds (100–1000 steps).
-- **PSI action thresholds:** The pressure levels at which she decides the system is genuinely under stress and acts. `PSI_CPU_ACTION_THRESH` (3.0–25.0%), `PSI_MEM_ACTION_THRESH` (2.0–20.0%), `PSI_IO_ACTION_THRESH` (4.0–30.0%). She tunes this to fit the hardware she actually lives on.
+- **Step timing:** How fast she runs. `STEP_RATE_DEFAULT` sets the normal loop interval (0.8s to 3.5s). `STEP_RATE_MAX` and `STEP_RATE_MIN` bound the adaptive range (1.5s to 5.0s and 0.4s to 1.2s respectively). When the machine is calm and reward is stable, she slows down and saves resources. When things are moving fast, she tightens the loop.
+- **Exploration:** How long she waits before deciding something has gone stale. `CURIOSITY_STALE_STEPS` controls when the curiosity probe fires (60 to 400 steps). `CURIOSITY_PROBE_COOLDOWN` sets the minimum gap between probes (20 to 180 steps). `DISCO_INTERVAL` governs how often the ActionProposer looks for new actions to propose (80 to 600 steps). `TUNE_INTERVAL` controls how often the SelfTuner recalibrates its thresholds (100 to 1000 steps).
+- **PSI action thresholds:** The pressure levels at which she decides the system is genuinely under stress and acts. `PSI_CPU_ACTION_THRESH` (3.0 to 25.0%), `PSI_MEM_ACTION_THRESH` (2.0 to 20.0%), `PSI_IO_ACTION_THRESH` (4.0 to 30.0%). She tunes this to fit the hardware she actually lives on.
 
-In 14 self-modifications to date, she has focused entirely on step timing — advancing `STEP_RATE_DEFAULT` incrementally from 1.59s to 2.50s as reward history confirmed the machine responds better to a slower, steadier loop. Each increase was preceded by a negative reward delta, and she stopped at 2.50s when further slowing stopped improving outcomes. The rest of the parameter space is live and available whenever reward signals warrant it.
+In 14 self-modifications to date, she has focused entirely on step timing, advancing `STEP_RATE_DEFAULT` incrementally from 1.59s to 2.50s as reward history confirmed the machine responds better to a slower, steadier loop. Each increase was preceded by a negative reward delta, and she stopped at 2.50s when further slowing stopped improving outcomes. The rest of the parameter space is live and available whenever reward signals warrant it.
 
 **Self-Modification Safeguards:**
 
@@ -225,12 +225,12 @@ The advisor evaluates every 500 steps and emits a `[CONTINUITY]` log entry when 
 
 Four signals are monitored cross-session, all persisted in the state pickle so trends accumulate across restarts:
 
-- **Sustained thermal stress**: Rolling average of `temp_c` across sessions. Transient spikes don't trigger; a climbing long-term trend does.
-- **PSI I/O pressure**: Average `psi_io_some` — percentage of time tasks were stalled on disk I/O. Rising values indicate a storage layer under increasing strain.
+- **Sustained thermal stress**: Rolling average of `temp_c` across sessions. Transient spikes do not trigger; a climbing long-term trend does.
+- **PSI I/O pressure**: Average `psi_io_some`, the percentage of time tasks were stalled on disk I/O. Rising values indicate a storage layer under increasing strain.
 - **Save failures**: Count of entries in `arminta_crash.log`. Each represents a failed pickle write, a symptom of storage degradation.
 - **Error step rate**: Fraction of steps that logged errors in the most recent evaluation window.
 
-The confidence score is a probability-union of individual signal scores. The advisor is intentionally conservative: it doesn't warrant migration from a single bad reading. It warrants it from a pattern.
+The confidence score is a probability-union of individual signal scores. The advisor is intentionally conservative. It does not warrant migration from a single bad reading. It warrants it from a pattern.
 
 ---
 
@@ -247,37 +247,37 @@ The CMC maintains Q-values for all five modes (`OBSERVE`, `INVESTIGATE`, `OPTIMI
 ARMINTA's intervention vocabulary is the complete set of things she can actually do to the machine. Every action is a discrete, bounded operation with a defined safety profile. The causal graph learns which produce real effects; the rest of the architecture decides when to use them.
 
 **Hardware & Power**
-- `set_ac_max_perf` — One-shot AC power performance burst: fires CPU performance governor, CPU turbo, and GPU max performance together. Only called when AC power is confirmed and the governor isn't already pinned.
-- `set_cpu_performance` — Writes the performance governor to all CPU cores individually.
-- `enable_turbo` — Enables CPU turbo/boost. Intel via `/sys/devices/system/cpu/intel_pstate/no_turbo`, AMD via `/sys/devices/system/cpu/cpufreq/boost`. Reads current state first; no-ops cleanly if turbo is already on.
-- `set_gpu_performance` — Pins GPU to maximum performance level.
-- `relax_governor` — Restores the CPU governor to the saved pre-intervention value after sustained idle.
+- `set_ac_max_perf` -- One-shot AC power performance burst: fires CPU performance governor, CPU turbo, and GPU max performance together. Only called when AC power is confirmed and the governor is not already pinned.
+- `set_cpu_performance` -- Writes the performance governor to all CPU cores individually.
+- `enable_turbo` -- Enables CPU turbo/boost. Intel via `/sys/devices/system/cpu/intel_pstate/no_turbo`, AMD via `/sys/devices/system/cpu/cpufreq/boost`. Reads current state first; no-ops cleanly if turbo is already on.
+- `set_gpu_performance` -- Pins GPU to maximum performance level.
+- `relax_governor` -- Restores the CPU governor to the saved pre-intervention value after sustained idle.
 
 **Process Management**
-- `kill_extension_renderers` — SIGTERM sweep across all browser extension renderer processes identified by architectural flags (`--extension-process`). These processes auto-restart silently; the user sees nothing.
-- `kill_top_proc` — SIGTERM the single highest-CPU offending process. Applies browser taxonomy: extension renderers first, then tab renderers, never the main browser process.
-- `renice_top_proc` — Reduces scheduling priority of the current top CPU process via `renice`. Effects manifest over seconds; uses the tiered approval threshold and delayed causal observation.
-- `ionice_top_proc` — Adjusts I/O scheduling class of the top process. Useful when disk contention rather than CPU is the bottleneck.
-- `renice_ksoftirqd` — Boosts all `ksoftirqd/N` kernel threads to scheduling priority -5 during an IRQ storm. Safe and reversible; resets on reboot. Never exceeds -5 to avoid starving user processes.
+- `kill_extension_renderers` -- SIGTERM sweep across all browser extension renderer processes identified by architectural flags (`--extension-process`). These processes auto-restart silently; the user sees nothing.
+- `kill_top_proc` -- SIGTERM the single highest-CPU offending process. Applies browser taxonomy: extension renderers first, then tab renderers, never the main browser process.
+- `renice_top_proc` -- Reduces scheduling priority of the current top CPU process via `renice`. Effects manifest over seconds; uses the tiered approval threshold and delayed causal observation.
+- `ionice_top_proc` -- Adjusts I/O scheduling class of the top process. Useful when disk contention rather than CPU is the bottleneck.
+- `renice_ksoftirqd` -- Boosts all `ksoftirqd/N` kernel threads to scheduling priority -5 during an IRQ storm. Safe and reversible; resets on reboot. Never exceeds -5 to avoid starving user processes.
 
 **Memory**
-- `compact_memory` — Triggers kernel page compaction via `/proc/sys/vm/compact_memory`, reducing fragmentation without evicting data. Currently holds 20 causal graph edges with a mean CPU delta of -0.49 across observations.
-- `drop_slab` — Instructs the kernel to reclaim slab cache memory (dentry and inode caches).
-- `drop_caches` — Releases page, inode, and dentry caches. PSI-gated: suppressed entirely if memory stall pressure exceeds threshold. Also suppressed on ZRAM/ZSWAP systems.
-- `sync` — Flushes dirty kernel write buffers to disk. Always safe, always available.
-- `swapoff_swapon` — Cycles swap off and back on, forcing the kernel to flush swap-resident pages back to RAM where possible. Used only when swap utilization and available RAM headroom make it safe.
+- `compact_memory` -- Triggers kernel page compaction via `/proc/sys/vm/compact_memory`, reducing fragmentation without evicting data. Currently holds 20 causal graph edges with a mean CPU delta of -0.49 across observations.
+- `drop_slab` -- Instructs the kernel to reclaim slab cache memory (dentry and inode caches).
+- `drop_caches` -- Releases page, inode, and dentry caches. PSI-gated: suppressed entirely if memory stall pressure exceeds threshold. Also suppressed on ZRAM/ZSWAP systems.
+- `sync` -- Flushes dirty kernel write buffers to disk. Always safe, always available.
+- `swapoff_swapon` -- Cycles swap off and back on, forcing the kernel to flush swap-resident pages back to RAM where possible. Used only when swap utilization and available RAM headroom make it safe.
 
 **Network**
-- `disable_wifi_powersave` — Disables WiFi power save mode on the active interface. Power save causes 50–200ms latency spikes during streaming. Effect persists until reboot.
-- `txqueuelen_boost` — Increases the transmit queue length on the active network interface. Effects manifest over seconds.
-- `flush_dns` — Flushes the system DNS resolver cache via `systemd-resolve` or `resolvectl`.
+- `disable_wifi_powersave` -- Disables WiFi power save mode on the active interface. Power save causes 50-200ms latency spikes during streaming. Effect persists until reboot.
+- `txqueuelen_boost` -- Increases the transmit queue length on the active network interface. Effects manifest over seconds.
+- `flush_dns` -- Flushes the system DNS resolver cache via `systemd-resolve` or `resolvectl`.
 
 **Diagnostics (read-only)**
-- `log_top_proc` — Captures and logs the current highest-CPU process. Feeds the causal graph without intervention.
-- `log_top_net_proc` — Identifies the non-browser process with the most active network connections. Flags P2P patterns explicitly.
-- `log_iface_health` — Reports active network interface error rate, drop rate, WiFi signal strength, band, and link speed.
-- `log_ss_stats` — Captures socket statistics via `ss -s`.
-- `net_probe` — Fires a single real connectivity probe each call, round-robining across three targets resolved dynamically from the actual system network configuration. Gateway, DNS nameserver, and Firefox's captive portal URL. Three consecutive failures across any targets trigger a DEGRADED warning.
+- `log_top_proc` -- Captures and logs the current highest-CPU process. Feeds the causal graph without intervention.
+- `log_top_net_proc` -- Identifies the non-browser process with the most active network connections. Flags P2P patterns explicitly.
+- `log_iface_health` -- Reports active network interface error rate, drop rate, WiFi signal strength, band, and link speed.
+- `log_ss_stats` -- Captures socket statistics via `ss -s`.
+- `net_probe` -- Fires a single real connectivity probe each call, round-robining across three targets resolved dynamically from the actual system network configuration. Gateway, DNS nameserver, and Firefox's captive portal URL. Three consecutive failures across any targets trigger a DEGRADED warning.
 
 ---
 
@@ -318,7 +318,7 @@ ARMINTA polls `/proc/interrupts` for a configurable IRQ prefix (defaulting to `r
 
 ### Curiosity Probe
 
-If reward hasn't meaningfully changed for 150 consecutive steps, ARMINTA fires a low-impact probe action to verify that causal edges are still live. This prevents the agent from assuming a stable causal graph on a machine whose workload has silently shifted underneath it.
+If reward has not meaningfully changed for 150 consecutive steps, ARMINTA fires a low-impact probe action to verify that causal edges are still live. This prevents the agent from assuming a stable causal graph on a machine whose workload has silently shifted underneath it.
 
 ---
 
@@ -330,7 +330,7 @@ ARMINTA listens and emits surprise hints over UDP (port 54321) for multi-machine
 
 ### OOM Immunity
 
-At startup, ARMINTA writes `-1000` to `/proc/self/oom_score_adj`. The Linux kernel will not select ARMINTA for termination during a memory crunch — which is precisely when its intervention is needed most.
+At startup, ARMINTA writes `-1000` to `/proc/self/oom_score_adj`. The Linux kernel will not select ARMINTA for termination during a memory crunch, which is precisely when its intervention is needed most.
 
 ---
 
@@ -350,27 +350,27 @@ The web dashboard at [mematron.github.io/arminta-status](https://mematron.github
 
 Panels visible on the dashboard:
 
-- **Total Empirical Steps** — cumulative count of real OS-level interventions since first run, with a flash animation on update.
-- **Cognitive Mode / Situation / Reward** — current mode, session geometry classification, and running cumulative reward. Positive means the agent has on balance improved the system; negative means it's still learning.
-- **Error Steps** — count of steps that produced errors within the most recent 200-step window.
-- **Emotional State** — dominant emotion label and intensity bars for all seven drive states (calm, curious, focused, confident, stressed, frustrated, bored) on a 0–5 scale.
-- **Cognitive Metrics** — live counters for causal edges, dream cycles, hypotheses generated, total interventions, self-modifications, and active Mosaic hypotheses.
-- **Governor State** — current CPU governor, saved governor, manual override status, idle step count, and bootstrap phase indicator.
-- **Adaptive Thresholds** — current learned values for CPU_WARN, MEM_WARN, NET_WARN, DILUTION_LOG_TRIGGER, and DILUTION_KILL_TRIGGER.
-- **Causal Graph — Top Interventional Edges** — bar chart of the strongest confirmed `(action, metric)` causal relationships, ranked by effect magnitude, with observation count.
-- **Action Reward Chart** — mean reward per action over the last 30 executions, shown as a centered horizontal bar chart.
-- **Reward History Sparkline** — per-step reward for the most recent 150 steps, with a 10-step rolling average overlay.
-- **Network Health Probes** — rolling dot strip of the last 20 probe results, with a DEGRADED warning if three consecutive probes have failed.
-- **Open Questions / Mosaic Hypotheses** — the current list of unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations.
-- **Circadian CPU Pattern** — average CPU usage by hour of day, learned across the agent's entire lifetime.
-- **Meta-Cognitive Controller Q-Table** — the CMC's current Q-values for all five cognitive modes, with the highest-value mode highlighted.
-- **Mode Distribution Donut** — percentage breakdown of cognitive modes across the most recent 200 recorded steps.
-- **Emotion Timeline** — color-coded dot grid of dominant emotion across the most recent 200 steps.
-- **Kill Ineffective** — processes repeatedly targeted with no observed reward improvement, flagged as de-prioritized kill targets.
-- **Agent Log** — color-coded tail of the operational log.
-- **Continuity Advisor** — multi-signal hardware stress assessment with NOMINAL / ADVISORY / MIGRATION WARRANTED verdict, confidence score, and individual signal breakdown.
+- **Total Empirical Steps** -- cumulative count of real OS-level interventions since first run, with a flash animation on update.
+- **Cognitive Mode / Situation / Reward** -- current mode, session geometry classification, and running cumulative reward. Positive means the agent has on balance improved the system; negative means it is still learning.
+- **Error Steps** -- count of steps that produced errors within the most recent 200-step window.
+- **Emotional State** -- dominant emotion label and intensity bars for all seven drive states (calm, curious, focused, confident, stressed, frustrated, bored) on a 0-5 scale.
+- **Cognitive Metrics** -- live counters for causal edges, dream cycles, hypotheses generated, total interventions, self-modifications, and active Mosaic hypotheses.
+- **Governor State** -- current CPU governor, saved governor, manual override status, idle step count, and bootstrap phase indicator.
+- **Adaptive Thresholds** -- current learned values for CPU_WARN, MEM_WARN, NET_WARN, DILUTION_LOG_TRIGGER, and DILUTION_KILL_TRIGGER.
+- **Causal Graph -- Top Interventional Edges** -- bar chart of the strongest confirmed `(action, metric)` causal relationships, ranked by effect magnitude, with observation count.
+- **Action Reward Chart** -- mean reward per action over the last 30 executions, shown as a centered horizontal bar chart.
+- **Reward History Sparkline** -- per-step reward for the most recent 150 steps, with a 10-step rolling average overlay.
+- **Network Health Probes** -- rolling dot strip of the last 20 probe results, with a DEGRADED warning if three consecutive probes have failed.
+- **Open Questions / Mosaic Hypotheses** -- the current list of unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations.
+- **Circadian CPU Pattern** -- average CPU usage by hour of day, learned across the agent's entire lifetime.
+- **Meta-Cognitive Controller Q-Table** -- the CMC's current Q-values for all five cognitive modes, with the highest-value mode highlighted.
+- **Mode Distribution Donut** -- percentage breakdown of cognitive modes across the most recent 200 recorded steps.
+- **Emotion Timeline** -- color-coded dot grid of dominant emotion across the most recent 200 steps.
+- **Kill Ineffective** -- processes repeatedly targeted with no observed reward improvement, flagged as deprioritized kill targets.
+- **Agent Log** -- color-coded tail of the operational log.
+- **Continuity Advisor** -- multi-signal hardware stress assessment with NOMINAL / ADVISORY / MIGRATION WARRANTED verdict, confidence score, and individual signal breakdown.
 
-The dashboard detects stale data: if the gist payload hasn't changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions from AGENT ACTIVE to SIGNAL WEAK (over 20 minutes since last push) or AGENT OFFLINE (over 60 minutes).
+The dashboard detects stale data: if the gist payload has not changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions from AGENT ACTIVE to SIGNAL WEAK (over 20 minutes since last push) or AGENT OFFLINE (over 60 minutes).
 
 ---
 
@@ -381,7 +381,7 @@ ARMINTA carries its entire learned history across sessions via a unified state p
 - ![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) of empirical learning on target hardware, updated live from the running agent.
 - ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) logged, documenting every major hypothesis, intervention, self-modification, mosaic discovery, and lexical statement.
 - ![Dreams](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.dream_count&label=dreams&color=blueviolet&cacheSeconds=300) completed, each one a consolidation pass over accumulated episodic evidence.
-- **Version-Agnostic Migration**: Automatic state upgrading from prior versions back to Minuet v86 — learned knowledge is never lost during updates.
+- **Version-Agnostic Migration**: Automatic state upgrading from prior versions back to Minuet v86. Learned knowledge is never lost during updates.
 
 The persistent state includes the causal graph, RL parameters, episodic database, self-model, MosaicCore state, LexicalCore state, Kill Ineffective registry, and Continuity Advisor cross-session trends.
 
@@ -397,11 +397,11 @@ The persistent state includes the causal graph, RL parameters, episodic database
 | **Episodic Database** | A persistent SQLite database (`arminta_episodic.db`) recording every significant event: actions and outcomes, dream cycles, hypothesis tests, mosaic discoveries, lexical statements, and self-modifications. The ground truth for all of ARMINTA's self-knowledge. |
 | **do-calculus** | The mathematical framework for reasoning about causal effects (interventions) vs. mere correlations (observations). ARMINTA uses this to avoid approving actions that merely correlate with good outcomes rather than causing them. |
 | **Confound Poisoning** | A spurious causal relationship inferred when an unobserved third variable causes both the action and the observed metric. |
-| **Paramorphic Learning** | A learning paradigm originated by Jason German (mematron), first described in the [BIOS of Being](https://ardorlyceum.itch.io/bios) project. An agent transforms its own internal form — reorganizing its knowledge representation, evolving its decision-making policies, and modifying its operational strategies — while preserving accumulated knowledge. In ARMINTA this manifests as the HypothesisEngine running a genetic algorithm over causal graph structure during DREAM cycles. Documented in the [SUKOSHI devlogs](https://ardorlyceum.itch.io/sukoshi/devlog/957213/introducing-paramorphic-learning-its-vision-for-sukoshi). |
-| **MosaicCore** | An expanding world model originated by Jason German (mematron). The causal graph models the machine itself; MosaicCore reaches outward: probing time, network topology, filesystem activity, external environmental signals, and ARMINTA's own behavioral history. No subject ceiling is defined in advance. |
-| **LexicalCore** | ARMINTA's emergent symbol layer. Tracks weighted co-occurrence statistics across action names, emotion labels, mode names, and situation types from her own episodic log. From these statistics she assembles short statements describing patterns she has observed in her own behavior, and forms open questions when reward reversals or anomalies can't be explained by any existing statement. |
-| **Poison Registry** | A hard-coded list of structurally impossible causal edges. Prevents the agent from learning relationships that can't exist given the physical architecture of the system. |
-| **Kill Ineffective Registry** | A persisted list of process names repeatedly targeted with kill actions without producing any reward improvement. Processes on this list are de-prioritized as kill targets. |
+| **Paramorphic Learning** | A learning paradigm originated by Jason German (mematron), first described in the [BIOS of Being](https://ardorlyceum.itch.io/bios) project. An agent transforms its own internal form, reorganizing its knowledge representation, evolving its decision-making policies, and modifying its operational strategies, all while preserving accumulated knowledge. In ARMINTA this manifests as the HypothesisEngine running a genetic algorithm over causal graph structure during DREAM cycles. Documented in the [SUKOSHI devlogs](https://ardorlyceum.itch.io/sukoshi/devlog/957213/introducing-paramorphic-learning-its-vision-for-sukoshi). |
+| **MosaicCore** | An expanding world model originated by Jason German (mematron). The causal graph models the machine itself; MosaicCore reaches outward, probing time, network topology, filesystem activity, external environmental signals, and ARMINTA's own behavioral history. No subject ceiling is defined in advance. |
+| **LexicalCore** | ARMINTA's emergent symbol layer. Tracks weighted co-occurrence statistics across action names, emotion labels, mode names, and situation types from her own episodic log. From these statistics she assembles short statements describing patterns she has observed in her own behavior, and forms open questions when reward reversals or anomalies cannot be explained by any existing statement. |
+| **Poison Registry** | A hard-coded list of structurally impossible causal edges. Prevents the agent from learning relationships that cannot exist given the physical architecture of the system. |
+| **Kill Ineffective Registry** | A persisted list of process names repeatedly targeted with kill actions without producing any reward improvement. Processes on this list are deprioritized as kill targets. |
 | **Continuity Advisor** | A read-only subsystem monitoring cross-session hardware stress signals (thermal trend, I/O pressure, save failures, error rate) and issuing a NOMINAL / ADVISORY / MIGRATION WARRANTED verdict. Cannot act; can only surface a finding. |
 | **Meta-Cognitive Controller (CMC)** | A Q-learning agent above the main loop that selects which cognitive mode to enter given current system state. Its Q-table and update dynamics are visible on the live dashboard. |
 | **Tiered Approval Threshold** | The minimum metric delta required within the 300ms measurement window for a proposed action to be approved into the live action set. Standard actions require 5%. Slow-effect actions use a lower 2% threshold, with remaining causal evidence gathered via a delayed observation 15 steps later. |
@@ -410,12 +410,12 @@ The persistent state includes the causal graph, RL parameters, episodic database
 | **PSI (Pressure Stall Information)** | Linux kernel mechanism measuring I/O and memory contention as a percentage of time tasks are stalled waiting for resources. Used to detect thrashing and gate interventions that would worsen pressure rather than relieve it. |
 | **Precognitive Launch Detection** | Process-table monitoring that locks the performance governor before a known workload fires, eliminating reaction latency. |
 | **IRQ Storm** | A spike in hardware interrupt rate (typically from a WiFi driver) that saturates the softirq handler and degrades system responsiveness. |
-| **OOM Immunity** | Protection against Linux kernel out-of-memory termination, ensuring the agent survives the memory crises it's meant to resolve. |
+| **OOM Immunity** | Protection against Linux kernel out-of-memory termination, ensuring the agent survives the memory crises it is meant to resolve. |
 | **ksoftirqd** | Linux kernel threads (`ksoftirqd/N`, one per CPU core) that process deferred software interrupt work. During an IRQ storm these threads fall behind, causing latency spikes. ARMINTA boosts their scheduling priority to help them catch up. |
 | **CPU Governor** | The Linux kernel policy controlling how CPU clock frequency scales with load. Common values: `performance` (always max clock), `powersave` (always min), `schedutil` (scales with scheduler utilization). ARMINTA reads, escalates, and restores this value as part of its intervention cycle. |
 | **CPU Turbo / Boost** | A hardware feature (Intel Turbo Boost, AMD Precision Boost) allowing CPU cores to run above their base clock for short bursts. ARMINTA can enable this explicitly and reads current state before writing to avoid spurious causal edges. |
-| **Page Cache / drop_caches** | The Linux kernel maintains a page cache of recently read disk data in unused RAM for fast re-access. `drop_caches` releases this memory back to the pool. Counterproductive under active memory stall — which is why ARMINTA PSI-gates this action. |
-| **WiFi Power Save** | A WiFi driver mode that periodically powers down the radio to save battery, at the cost of 50–200ms latency spikes. ARMINTA can disable this permanently for the session. |
+| **Page Cache / drop_caches** | The Linux kernel maintains a page cache of recently read disk data in unused RAM for fast re-access. `drop_caches` releases this memory back to the pool. Counterproductive under active memory stall, which is why ARMINTA PSI-gates this action. |
+| **WiFi Power Save** | A WiFi driver mode that periodically powers down the radio to save battery, at the cost of 50-200ms latency spikes. ARMINTA can disable this permanently for the session. |
 | **Extension Renderer** | A browser subprocess spawned specifically to run browser extensions, identified by the `--extension-process` flag. These processes can be terminated and will restart silently and automatically, making them ARMINTA's highest-priority kill target. |
 | **Governor Lifecycle** | The bidirectional CPU frequency management cycle: escalate to performance under load, relax back to the saved governor during sustained idle. |
 
@@ -459,9 +459,9 @@ ARMINTA runs Paramorphic Learning against a Linux kernel substrate. SUKOSHI appl
 
 ARMINTA exists within a larger system of autonomous agents and cognitive frameworks:
 
-- **[ardorlyceum.itch.io](https://ardorlyceum.itch.io)** — BIOS of Being registry, interactive terminal, and related projects
-- **[mematron.hearnow.com](https://mematron.hearnow.com)** — *BIOS_OS: The Sonification Cycle*: the 24-track audio tier of the BIOS of Being system
-- **[keygentia.netlify.app](https://keygentia.netlify.app)** — Keygentia Taxonomy Engine: an AI classification tool and Node 03 of the BIOS_OS project
+- **[ardorlyceum.itch.io](https://ardorlyceum.itch.io)** -- BIOS of Being registry, interactive terminal, and related projects
+- **[mematron.hearnow.com](https://mematron.hearnow.com)** -- *BIOS_OS: The Sonification Cycle*: the 24-track audio tier of the BIOS of Being system
+- **[keygentia.netlify.app](https://keygentia.netlify.app)** -- Keygentia Taxonomy Engine: an AI classification tool and Node 03 of the BIOS_OS project
 
 ---
 
