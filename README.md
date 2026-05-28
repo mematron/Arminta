@@ -193,7 +193,7 @@ When ARMINTA repeatedly targets a process with `kill_top_proc` or `kill_extensio
 
 Every 500 steps (~20 minutes at current step rate), when CPU utilization is below 25% and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This is not triggered by stress. It fires during genuine calm.
 
-The pass runs a fixed sequence: `sync` to flush dirty buffers, `compact_memory` to reduce kernel page fragmentation, a socket inventory via `ss -s`, and an interface health snapshot. All four actions run through the normal causal graph path, so every maintenance run builds graph edges even when the discovery loop has nothing to propose. Results are logged with `[MAINT]` prefix.
+The pass runs a fixed sequence: `sync` to flush dirty buffers, `compact_memory` to reduce kernel page fragmentation, a socket inventory via `ss -s`, an interface health snapshot, and a S.M.A.R.T. drive health check. The drive check fires on a 4-hour wall-clock interval rather than a pass count -- the timestamp is persisted in the state pickle so the interval survives restarts. On first run it fires immediately. Read-only; uses `nvme smart-log` with `smartctl -A` as fallback. Surfaces wear, spare capacity, media errors, and NVMe temperature. All maintenance results are logged with `[MAINT]` prefix and pushed to the live dashboard.
 
 ---
 
@@ -278,6 +278,7 @@ ARMINTA's intervention vocabulary is the complete set of things she can actually
 - `log_iface_health` -- Reports active network interface error rate, drop rate, WiFi signal strength, band, and link speed.
 - `log_ss_stats` -- Captures socket statistics via `ss -s`.
 - `net_probe` -- Fires a single real connectivity probe each call, round-robining across three targets resolved dynamically from the actual system network configuration. Gateway, DNS nameserver, and Firefox's captive portal URL. Three consecutive failures across any targets trigger a DEGRADED warning.
+- `check_nvme_health` -- Reads S.M.A.R.T. data from NVMe/SSD drives via `nvme smart-log` or `smartctl -A`. Read-only. Returns wear percentage, spare capacity, media error count, lifetime bytes written, drive temperature, and critical warning byte. Fires on a 4-hour wall-clock schedule persisted across restarts.
 
 ---
 
@@ -368,6 +369,7 @@ Panels visible on the dashboard:
 - **Emotion Timeline** -- color-coded dot grid of dominant emotion across the most recent 200 steps.
 - **Kill Ineffective** -- processes repeatedly targeted with no observed reward improvement, flagged as deprioritized kill targets.
 - **Agent Log** -- color-coded tail of the operational log.
+- **Drive Health (S.M.A.R.T.)** -- NVMe/SSD wear, spare capacity, media errors, and temperature read directly from the drive via `nvme smart-log` or `smartctl`. Checked every 4 hours. Last-checked age shown inline. Warning state on critical signal, spare exhaustion, or media errors.
 - **Continuity Advisor** -- multi-signal hardware stress assessment with NOMINAL / ADVISORY / MIGRATION WARRANTED verdict, confidence score, and individual signal breakdown.
 
 The dashboard detects stale data: if the gist payload has not changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions from AGENT ACTIVE to SIGNAL WEAK (over 20 minutes since last push) or AGENT OFFLINE (over 60 minutes).
@@ -406,7 +408,7 @@ The persistent state includes the causal graph, RL parameters, episodic database
 | **Meta-Cognitive Controller (CMC)** | A Q-learning agent above the main loop that selects which cognitive mode to enter given current system state. Its Q-table and update dynamics are visible on the live dashboard. |
 | **Tiered Approval Threshold** | The minimum metric delta required within the 300ms measurement window for a proposed action to be approved into the live action set. Standard actions require 5%. Slow-effect actions use a lower 2% threshold, with remaining causal evidence gathered via a delayed observation 15 steps later. |
 | **Slow-Effect Actions** | Interventions whose causal effects manifest over seconds rather than the 300ms measurement window. These receive a delayed second observation 15 steps after firing. |
-| **Idle Maintenance Pass** | A proactive maintenance cycle firing every 500 steps during genuine system idle, independent of reactive discovery. Runs sync, memory compaction, socket inventory, and interface health. All results feed the causal graph. |
+| **Idle Maintenance Pass** | A proactive maintenance cycle firing every 500 steps during genuine system idle, independent of reactive discovery. Runs sync, memory compaction, socket inventory, interface health, and a S.M.A.R.T. drive health check on a 4-hour wall-clock schedule. All results feed the causal graph. |
 | **PSI (Pressure Stall Information)** | Linux kernel mechanism measuring I/O and memory contention as a percentage of time tasks are stalled waiting for resources. Used to detect thrashing and gate interventions that would worsen pressure rather than relieve it. |
 | **Precognitive Launch Detection** | Process-table monitoring that locks the performance governor before a known workload fires, eliminating reaction latency. |
 | **IRQ Storm** | A spike in hardware interrupt rate (typically from a WiFi driver) that saturates the softirq handler and degrades system responsiveness. |
@@ -434,6 +436,7 @@ The persistent state includes the causal graph, RL parameters, episodic database
 | **Arminta v1** | Early 2026 | Rebrand and architectural consolidation. Introduction of SUKOSHI linkage. |
 | **Arminta v2** | Mid 2026 | Extension Renderer Sweep: Priority-1 browser process targeting via cmdline flags, brand-agnostic across all Chromium and Gecko forks. Introduction of MosaicCore expanding world model and LexicalCore emerging language layer. |
 | **Arminta v2 (expand)** | May 2026 | Expanded intervention vocabulary (renice, ionice, compact_memory, txqueuelen_boost, and others). Tiered discovery thresholds for slow-effect actions. Idle maintenance pass. Net probe action with dynamic target resolution. Kill Ineffective registry. Continuity Advisor. Meta-Cognitive Controller Q-table. Live dashboard. Step 200,000 reached. |
+| **Arminta v2.1** | May 2026 | S.M.A.R.T. drive health monitoring with 4-hour wall-clock scheduling, persisted across sessions. Load-conditional CPU governor escalation with lock file mechanism. |
 
 ---
 
@@ -473,5 +476,5 @@ Redistribution or reproduction of this documentation without attribution is not 
 
 ---
 
-**Last Updated**: May 2026  
+**Last Updated**: May 2026
 **Maintainer**: [Jason German (mematron)](https://github.com/mematron)
