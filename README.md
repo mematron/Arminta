@@ -363,7 +363,7 @@ At startup, ARMINTA writes `-1000` to `/proc/self/oom_score_adj`. The Linux kern
 
 ## Live Dashboard
 
-The web dashboard at [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) is a read-only window into the agent's cognitive state, refreshing every 2 minutes from a gist payload pushed directly by the running agent. Nothing on the dashboard affects ARMINTA's behavior.
+The web dashboard at [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) is a read-only window into the agent's cognitive state, refreshing periodically from a gist payload pushed directly by the running agent. Nothing on the dashboard affects ARMINTA's behavior.
 
 Panels visible on the dashboard:
 
