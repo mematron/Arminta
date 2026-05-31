@@ -32,7 +32,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 - **Episodic Database**: Query `arminta_episodic.db` for a complete record of every action, outcome, and self-assessment. Each episode now includes a `context` column storing the metric snapshot that triggered the event, enabling counterfactual replay.
 - **State Snapshot**: The current world model and learned parameters are serialized in a versioned pickle file.
 - **System Metrics**: Ground truth comes from standard Linux interfaces including `/proc/meminfo`, PSI, and thermal sensors.
-- **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) displays real-time cognitive state, emotion bars, causal edges, reward history, and the Continuity Advisor. Data is pushed from the running agent via gist on a 2-minute cycle.
+- **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) displays real-time cognitive state, emotion bars, causal edges, reward history, and the Continuity Advisor. Data is pushed from the running agent via gist on a configurable cycle.
 
 ---
 
@@ -83,9 +83,12 @@ graph TD
     classDef memory fill:#1e1e2e,stroke:#cdd6f4,stroke-width:1px,color:#cdd6f4;
     classDef mosaic fill:#0d1f2d,stroke:#00e5ff,stroke-width:1px,color:#00e5ff;
     classDef lexical fill:#1a0d2e,stroke:#c084fc,stroke-width:1px,color:#c084fc;
+    classDef why fill:#1a1a0d,stroke:#e5c07b,stroke-width:1px,color:#e5c07b;
+    classDef self fill:#1a0d1a,stroke:#c084fc,stroke-width:1px,color:#c084fc;
+    classDef advisor fill:#0d1a0d,stroke:#98c379,stroke-width:1px,color:#98c379;
 
     ModeController["Mode Controller <br/> (Q-Learning Over Cognitive Postures)"]
-    EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log)"]:::memory
+    EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log + Metric Context)"]:::memory
     BayesianPerception["BayesianPerception <br/> (Belief Updating & Noise Smoothing)"]
     WorldModel["WorldModel <br/> (State-Action Outcome Statistics)"]
     EmotionalState["EmotionalState <br/> (Affective Modulation: Calm, Bored, Stressed, etc.)"]
@@ -94,6 +97,9 @@ graph TD
     DreamCycle["DreamCycle <br/> (Consolidation & Paramorphic Learning)"]
     MosaicCore["MosaicCore <br/> (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
     LexicalCore["LexicalCore <br/> (Emerging Language: Symbol Weights, Grammar, Open Questions)"]:::lexical
+    CausalReasoning["CausalReasoning <br/> (WHY Layer: Context, Mechanism, Counterfactual, Failure Patterns)"]:::why
+    SelfModel["SelfModel <br/> (Operational History, Failure Patterns, Mode Dominance)"]:::self
+    ContinuityAdvisor["ContinuityAdvisor <br/> (Cross-Session Hardware Stress: NOMINAL / ADVISORY / MIGRATION)"]:::advisor
 
     ModeController -->|Selects Mode| BayesianPerception
     BayesianPerception -->|Updates Belief| ModeController
@@ -101,16 +107,24 @@ graph TD
     ModeController -->|Triggers Dream| DreamCycle
     DreamCycle -->|Evolves Hypotheses| HypothesisEngine
     HypothesisEngine -->|Refines Edges| WorldModel
+    HypothesisEngine -->|Annotates Mechanism| CausalReasoning
     WorldModel -->|Logs Anomalies| EpisodicMemory
     ModeController -->|Self-Assess| MetaCognition
     MetaCognition -->|Rewrites Constants| ModeController
+    MetaCognition -->|Updates| SelfModel
+    SelfModel -->|Failure Patterns| CausalReasoning
+    SelfModel -->|Mode Dominance| ModeController
     ModeController -->|INVESTIGATE| MosaicCore
     MosaicCore -->|Logs Discoveries| EpisodicMemory
     MosaicCore -->|Findings Feed| WorldModel
     DreamCycle -->|Consolidates| MosaicCore
     DreamCycle -->|Reflects| LexicalCore
+    DreamCycle -->|Generates Mechanisms| CausalReasoning
     LexicalCore -->|Logs Statements| EpisodicMemory
     EmotionalState -->|Surprise Signal| LexicalCore
+    EpisodicMemory -->|Counterfactual Query| CausalReasoning
+    CausalReasoning -->|Structural Diff| WorldModel
+    EpisodicMemory -->|Cross-Session Trends| ContinuityAdvisor
 ```
 
 ---
@@ -363,7 +377,7 @@ At startup, ARMINTA writes `-1000` to `/proc/self/oom_score_adj`. The Linux kern
 
 ## Live Dashboard
 
-The web dashboard at [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) is a read-only window into the agent's cognitive state, refreshing periodically from a gist payload pushed directly by the running agent. Nothing on the dashboard affects ARMINTA's behavior.
+The web dashboard at [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) is a read-only window into the agent's cognitive state, refreshing on a configurable cycle from a gist payload pushed directly by the running agent. Nothing on the dashboard affects ARMINTA's behavior.
 
 Panels visible on the dashboard:
 
