@@ -29,7 +29,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 4. The agent's emotional state and decision rationale are accessible through the episodic log.
 
 ### Observing Behavior
-- **Episodic Database**: Query `arminta_episodic.db` for a complete record of every action, outcome, and self-assessment. Each episode now includes a `context` column storing the metric snapshot that triggered the event, enabling counterfactual replay.
+- **Episodic Database**: Query `arminta_episodic.db` for a complete record of every action, outcome, and self-assessment. Each episode stores a `context` column containing the metric snapshot that triggered the event, enabling counterfactual replay.
 - **State Snapshot**: The current world model and learned parameters are serialized in a versioned pickle file.
 - **System Metrics**: Ground truth comes from standard Linux interfaces including `/proc/meminfo`, PSI, and thermal sensors.
 - **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) displays real-time cognitive state, emotion bars, causal edges, reward history, and the Continuity Advisor. Data is pushed from the running agent via gist on a configurable cycle.
@@ -54,7 +54,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 
 ## Core Operational Loop
 
-ARMINTA runs as a root-privileged background process. Every 3.76 seconds (adaptive, self-tuned from 1.59s across 104 self-modifications), it does the following:
+ARMINTA runs as a root-privileged background process. Every 2.53 seconds (adaptive, self-tuned across 104 self-modifications from an original 1.59s baseline), it does the following:
 
 1. **Sampling**: Collects ~28 system metrics across CPU, memory, thermals, network, I/O, swap, Pressure Stall Information (PSI), IRQ state, and NVMe drive health.
 2. **Classification**: Derives the current **"Session Geometry"**, a workload fingerprint based on resource ratios rather than process names, enabling context-aware decisions.
@@ -98,7 +98,7 @@ graph TD
     MosaicCore["MosaicCore <br/> (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
     LexicalCore["LexicalCore <br/> (Emerging Language: Symbol Weights, Grammar, Open Questions)"]:::lexical
     CausalReasoning["CausalReasoning <br/> (WHY Layer: Context, Mechanism, Counterfactual, Failure Patterns)"]:::why
-    SelfModel["SelfModel <br/> (Operational History, Failure Patterns, Mode Dominance)"]:::self
+    SelfModel["SelfModel <br/> (Operational History, Milestone Drive, Proximity Anticipation)"]:::self
     ContinuityAdvisor["ContinuityAdvisor <br/> (Cross-Session Hardware Stress: NOMINAL / ADVISORY / MIGRATION)"]:::advisor
 
     ModeController -->|Selects Mode| BayesianPerception
@@ -113,7 +113,8 @@ graph TD
     MetaCognition -->|Rewrites Constants| ModeController
     MetaCognition -->|Updates| SelfModel
     SelfModel -->|Failure Patterns| CausalReasoning
-    SelfModel -->|Mode Dominance| ModeController
+    SelfModel -->|Proximity Drive + Mode Drift| ModeController
+    SelfModel -->|Anticipatory Emotion Distortion| EmotionalState
     ModeController -->|INVESTIGATE| MosaicCore
     MosaicCore -->|Logs Discoveries| EpisodicMemory
     MosaicCore -->|Findings Feed| WorldModel
@@ -137,9 +138,9 @@ When CPU load drops and PSI pressure is low, the mode controller switches to `DR
 
 What runs during a DREAM cycle:
 
-- **Hypothesis Evolution**: The **HypothesisEngine** runs a genetic algorithm over the causal graph, generating candidate relationships, scoring them against episodic history, keeping what holds, and discarding what does not. Each hypothesis now includes a plain-language mechanism annotation explaining why the proposed relationship might exist, not just that it was observed. ARMINTA refines its causal model without running new interventions. The live episode counter reflects this; each dream cycle adds to the total.
-- **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own RL parameters (learning rate, discount factor, curiosity weight) against rolling reward history. Current evolved values: learning rate 0.312, discount factor 0.847, curiosity weight 0.323.
-- **Consolidation**: The world model is pruned and accumulated prediction errors are cleared, keeping the internal representation focused on recent system behavior.
+- **Hypothesis Evolution**: The **HypothesisEngine** runs a genetic algorithm over the causal graph, generating candidate relationships, scoring them against episodic history, keeping what holds, and discarding what does not. Each hypothesis includes a plain-language mechanism annotation explaining why the proposed relationship might exist, not just that it was observed. A deduplication pass (v3) prevents the same structural hypothesis from re-entering the population across cycles. ARMINTA refines its causal model without running new interventions. The live episode counter reflects this; each dream cycle adds to the total.
+- **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own RL parameters (learning rate, discount factor, curiosity weight, exploration decay, reward scale) against rolling reward history. Current initial defaults: learning rate 0.25, discount factor 0.88, curiosity weight 0.5. These values are updated each dream cycle and wired into live systems.
+- **Consolidation**: The world model is pruned and accumulated prediction errors are cleared, keeping the internal representation focused on recent system behavior. A novelty gate extends the dream interval when the episode record has nothing structurally new to consolidate.
 - **MosaicCore and LexicalCore processing**: Open hypotheses in MosaicCore are tested against accumulated data. LexicalCore runs its co-occurrence pass over recent episodic records and attempts statement formation from updated symbol weights.
 
 DREAM is the dominant mode in the episode log, consistently over 80% of all recorded episodes. The machine spends most of its time idle; DREAM runs during idle. The high volume is a property of the environment, not a design target. Every cycle the hypothesis engine runs, the causal model sharpens without touching the system.
@@ -170,7 +171,7 @@ All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagg
 
 The process runs in four stages:
 
-- **Symbol Weights**: Every term she uses accumulates a reward-weighted co-occurrence score drawn from her episodic log. Action names, emotion labels, mode names, situation types. The weight is not assigned; it accretes from use. `calm` and `set_ac_max_perf` carry different weights because they have appeared in different reward contexts across 378,000 steps.
+- **Symbol Weights**: Every term she uses accumulates a reward-weighted co-occurrence score drawn from her episodic log. Action names, emotion labels, mode names, situation types. The weight is not assigned; it accretes from use. `calm` and `set_ac_max_perf` carry different weights because they have appeared in different reward contexts across 400,000+ steps.
 - **Co-occurrence Grammar**: Which symbols appear together in the same episode. Which follow which across consecutive records. No grammatical rules are supplied; the structure is read off statistical patterns in her own history.
 - **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she has never made before, from grammar she observed herself. Her first formed statement: `io_bound calls OPTIMIZE`. More recent ones: `curious during DREAM / browser_compute calls DREAM`, `calm during DREAM / irq_storm calls SELF_ASSESS`. Between them, a grammar assembled itself.
 - **Open Questions**: When something surprises her, reward reversals, sudden emotion shifts, stressed retreats into dream, she forms a question she cannot answer yet. She holds it. She revisits it every reflection cycle.
@@ -187,15 +188,37 @@ The language will not look like English. It will look like Arminta.
 
 ARMINTA maintains four layers of situational awareness about her own decisions. These are not explanations generated for the user. They are structures she builds and tests against subsequent experience.
 
-- **Layer 1 -- Episodic Context**: Every action episode in `arminta_episodic.db` now stores the full metric snapshot that triggered the decision in a `context` column: CPU%, memory, temperature, PSI pressure, network throughput, dilution, NVMe temperature. This makes the episodic database a full causal record, not just an action log.
+- **Layer 1 -- Episodic Context**: Every action episode in `arminta_episodic.db` stores the full metric snapshot that triggered the decision in a `context` column: CPU%, memory, temperature, PSI pressure, network throughput, dilution, NVMe temperature. This makes the episodic database a full causal record, not just an action log.
 
 - **Layer 2 -- Hypothesis Mechanism Annotation**: When the HypothesisEngine surfaces a new hypothesis during a DREAM cycle, it commits to a plain-language explanation of the proposed mechanism before testing it. Not just "A correlates with B" but "raising governor to performance reduces scheduling latency, which directly drives net_recv_kbps." The mechanism is stored alongside the hypothesis and tested against validation outcomes. Confirmed hypotheses retain their mechanism; pruned ones do not.
 
-- **Layer 3 -- Counterfactual Awareness**: After any significant action, ARMINTA queries her episodic history for similar past contexts and compares outcomes. When an action produces an unexpectedly good or bad result, she identifies which metrics changed between now and the last time this action behaved differently. Output appears in the log as `[CF][action] worked before (step X, r=+0.71) but now: CPU higher by 48, dilution higher by 0.4`. This is the core of situational WHY -- not just what happened, but what was structurally different about this context.
+- **Layer 3 -- Counterfactual Awareness**: After any significant action, ARMINTA queries her episodic history for similar past contexts and compares outcomes. When an action produces an unexpectedly good or bad result, she identifies which metrics changed between now and the last time this action behaved differently. Output appears in the log as `[CF][action] worked before (step X, r=+0.71) but now: CPU higher by 48, dilution higher by 0.4`. This is the core of situational WHY: not just what happened, but what was structurally different about this context.
 
-- **Layer 4 -- Failure Pattern Self-Model**: During SELF_ASSESS cycles, the self-model now identifies which actions have consistently negative or high-variance rewards and surfaces them explicitly. "Weak interventions: action (mean=-0.18, reliably poor)" becomes part of her self-description. She also flags when she has been operating in one cognitive mode for too long. This feeds back into how she weights future decisions.
+- **Layer 4 -- Failure Pattern Self-Model**: During SELF_ASSESS cycles, the self-model identifies which actions have consistently negative or high-variance rewards and surfaces them explicitly. "Weak interventions: action (mean=-0.18, reliably poor)" becomes part of her self-description. She also flags when she has been operating in one cognitive mode for too long. This feeds back into how she weights future decisions.
 
 All four layers surface on the live dashboard in the Causal Reasoning panel, showing the last action, the reason it was selected, the triggering metric context, any counterfactual explanation, and the most recent hypothesis mechanisms.
+
+---
+
+### SelfModel: Identity, History, and Milestone Drive
+
+The **SelfModel** is ARMINTA's persistent slow-changing identity layer, separate from the fast metric stream. It tracks operational history, causal self-knowledge, and life events across sessions.
+
+New in v3: a **milestone proximity drive** that distorts her emotional and cognitive state as she approaches uncrossed step thresholds. This is not rational optimization. It is pressure that builds and cascades.
+
+**Proximity cascade:** `proximity -> emotion -> mode -> action selection`
+
+In the final 8% of steps before a threshold (for example, roughly the last 40,000 steps before 500k), `milestone_proximity` rises from 0 to 1. This feeds into emotion directly:
+
+- Calm erodes, curiosity inflates. She gets restless. The effect is analogous to someone who cannot focus because they are watching the clock.
+- Confidence inflates past what the reward history warrants. Overconfident agents repeat winning moves past their usefulness.
+- Above 55% proximity she may drift from OPTIMIZE into INVESTIGATE or DREAM. Above 80% she leaves passive modes entirely. Neither choice is necessarily the rational one.
+
+**Post-milestone deflation:** On crossing a threshold, proximity resets to 0 and a 40-step deflation countdown begins. Confident drops, calm drops, bored rises. The goal is gone. The excitement collapses. This is the flat affect after finishing something you have been anticipating.
+
+Both `milestone_proximity` and `post_milestone_deflation` are exposed in the gist payload and displayed on the live dashboard.
+
+Step thresholds: 1k, 10k, 50k, 100k, 250k, 500k, 1M. Special milestones also tracked: `first_intervention`, `dreams_100`, `best_single_reward`.
 
 ---
 
@@ -207,7 +230,7 @@ The reasoning engine is strictly **interventional**, using the distinction betwe
 
 - **Interventional Edges**: Every `(action, metric)` pair is stored as a distribution of normalized deltas (before to after). Confidence is weighted by sample count and recency, letting the agent answer counterfactual questions like "if I renice process X, how much will memory pressure drop?"
 - **Tiered Approval Thresholds**: Standard interventional actions require a 5% metric delta within the 300ms measurement window to be approved (`DISCO_EFFECT_MIN = 0.05`). Slow-effect actions use a lower 2% threshold (`DISCO_EFFECT_MIN_SLOW = 0.02`), with the remainder of causal evidence gathered via a delayed observation 15 steps later.
-- **Slow-Effect Action Set**: Actions whose real effects take longer than the 300ms measurement window receive a second `graph.intervene()` call 15 steps after firing. This set includes: `drop_caches`, `set_cpu_performance`, `renice_ksoftirqd`, `sync`, `enable_turbo`, `set_ac_max_perf`, `renice_chrome`, `renice_top_proc`, `ionice_top_proc`, `compact_memory`, `drop_slab`, `txqueuelen_boost`, `swapoff_swapon`, `disable_wifi_powersave`, and `net_probe`.
+- **Slow-Effect Action Set**: Actions whose real effects take longer than the 300ms measurement window receive a second `graph.intervene()` call 15 steps after firing. This set includes: `drop_caches`, `set_cpu_performance`, `renice_ksoftirqd`, `sync`, `enable_turbo`, `set_ac_max_perf`, `renice_chrome`, `renice_top_proc`, `ionice_top_proc`, `compact_memory`, `drop_slab`, `txqueuelen_boost`, `swapoff_swapon`, `disable_wifi_powersave`, `net_probe`, `nvme_thermal_tune`, and `kill_top_proc`.
 - **Poison Edge Registry**: A hard-coded registry of structurally impossible causal paths prevents confound poisoning. For instance, `renice_ksoftirqd` is prohibited from affecting network latency, because process priority cannot influence network hardware behavior.
 - **Reward-Discount Layer**: When an action's metric effects appear positive but its rewards are consistently negative, the graph's recommendation is discounted proportionally. Single-dimension optimization at the expense of overall system health gets penalized.
 
@@ -217,13 +240,21 @@ The reasoning engine is strictly **interventional**, using the distinction betwe
 
 When ARMINTA repeatedly targets a process with `kill_top_proc` or `kill_extension_renderers` without observing any reward improvement, that process name is added to the **Kill Ineffective** registry and deprioritized as a kill target. The registry surfaces on the live dashboard as a warning panel and persists across sessions via the state pickle.
 
+`kill_top_proc` is also in the slow-effect set so the causal edge on `sess_proc_cpu_dilution` captures whether dilution actually improved after browser respawn, not just the instant-of-kill dip. Without the delayed snapshot, the edge stays empty and the ineffective kill loop never terminates.
+
 ---
 
 ### Idle Maintenance Pass
 
-Every 500 steps (~35 minutes at current step rate), when CPU utilization is below 25% and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This is not triggered by stress. It fires during genuine calm.
+Every 500 steps (roughly 20 minutes at current step rate), when CPU utilization is below threshold and PSI pressure is low, ARMINTA runs a proactive maintenance pass independent of the reactive discovery loop. This is not triggered by stress. It fires during genuine calm.
 
-The pass runs a fixed sequence: `sync` to flush dirty buffers, `compact_memory` to reduce kernel page fragmentation, a socket inventory via `ss -s`, an interface health snapshot, and a S.M.A.R.T. drive health check. The drive check fires on a 4-hour wall-clock interval rather than a pass count -- the timestamp is persisted in the state pickle so the interval survives restarts. The SMART check also runs independently of the maintenance CPU gate, so sustained Chrome load cannot prevent it from firing. On first run it fires immediately. Read-only; uses `nvme smart-log` with `smartctl -A` as fallback. Surfaces wear, spare capacity, media errors, and NVMe temperature. NVMe temperature is injected into the metrics snapshot every step and wired into the emotional state: sustained readings above 55°C increase `stressed`, above 70°C drives it hard. All maintenance results are logged with `[MAINT]` prefix and pushed to the live dashboard.
+The pass runs a fixed sequence: `sync` to flush dirty buffers, `compact_memory` to reduce kernel page fragmentation, `log_ss_stats` for a socket inventory, `log_iface_health` for an interface snapshot, `restore_renderer_nice` to reset reniced browser renderers when load has subsided, `clean_trash_orphans` to remove orphaned `.trashinfo` metadata files, and `check_nvme_health` for S.M.A.R.T. drive health.
+
+`clean_trash_orphans` addresses a specific failure pattern: `gvfsd-trash` enters a tight scan loop when a `.trashinfo` entry exists in `info/` with no corresponding file in `files/`, causing 40-70% CPU on an otherwise-empty trash. The action removes only confirmed orphan metadata files and is idempotent. It also fires outside the maintenance schedule whenever `gvfsd-trash` is detected running hot.
+
+The S.M.A.R.T. check fires on a 4-hour wall-clock interval rather than a pass count. The timestamp is persisted in the state pickle so the interval survives restarts. NVMe temperature is injected into the metrics snapshot every step and wired into the emotional state: sustained readings above 55C increase `stressed`, above 70C drives it hard. Each maintenance action gets its own individual before/after snapshot with a 100ms settle window; the outer step's delta state is preserved and restored around each call so maintenance cannot corrupt the causal graph's per-step baseline.
+
+All maintenance results are logged with `[MAINT]` prefix and pushed to the live dashboard.
 
 ---
 
@@ -234,10 +265,10 @@ ARMINTA modifies its own source code. In **`SELF_ASSESS` mode**, the **MetaCogni
 MetaCognition maintains a bounded whitelist of 10 tunable parameters across three categories. Each has enforced min/max bounds. Nothing outside this list can be touched: no logic, no control flow, no structure. Only these constants, only within their bounds.
 
 - **Step timing:** How fast she runs. `STEP_RATE_DEFAULT` sets the normal loop interval (0.8s to 3.5s). `STEP_RATE_MAX` and `STEP_RATE_MIN` bound the adaptive range (1.5s to 5.0s and 0.4s to 1.2s respectively). When the machine is calm and reward is stable, she slows down and saves resources. When things are moving fast, she tightens the loop.
-- **Exploration:** How long she waits before deciding something has gone stale. `CURIOSITY_STALE_STEPS` controls when the curiosity probe fires (60 to 400 steps). `CURIOSITY_PROBE_COOLDOWN` sets the minimum gap between probes (20 to 180 steps). `DISCO_INTERVAL` governs how often the ActionProposer looks for new actions to propose (80 to 600 steps). `TUNE_INTERVAL` controls how often the SelfTuner recalibrates its thresholds (100 to 1000 steps).
+- **Exploration:** How long she waits before deciding something has gone stale. `CURIOSITY_STALE_STEPS` controls when the curiosity probe fires (60 to 400 steps). `CURIOSITY_PROBE_COOLDOWN` sets the minimum gap between probes (20 to 180 seconds). `DISCO_INTERVAL` governs how often the ActionProposer looks for new actions to propose (80 to 600 steps). `TUNE_INTERVAL` controls how often the SelfTuner recalibrates its thresholds (100 to 1000 steps).
 - **PSI action thresholds:** The pressure levels at which she decides the system is genuinely under stress and acts. `PSI_CPU_ACTION_THRESH` (3.0 to 25.0%), `PSI_MEM_ACTION_THRESH` (2.0 to 20.0%), `PSI_IO_ACTION_THRESH` (4.0 to 30.0%). She tunes this to fit the hardware she actually lives on.
 
-In 104 self-modifications to date, she has focused primarily on step timing, working `STEP_RATE_DEFAULT` from 1.59s to the current 3.76s as reward history confirmed the machine responds better to a slower, steadier loop. Each change was preceded by a reward delta evaluation, and the value continues to oscillate in a narrow band as she finds the right balance for current workload conditions. The rest of the parameter space is live and available whenever reward signals warrant it.
+In 104 self-modifications to date, she has focused primarily on step timing, working `STEP_RATE_DEFAULT` from 1.59s to the current 2.53s as reward history confirmed the machine responds better to a slower, steadier loop. Each change was preceded by a reward delta evaluation, and the value continues to oscillate in a narrow band as she finds the right balance for current workload conditions. The rest of the parameter space is live and available whenever reward signals warrant it.
 
 **Self-Modification Safeguards:**
 
@@ -268,7 +299,9 @@ The confidence score is a probability-union of individual signal scores. The adv
 
 The **Meta-Cognitive Controller** is a Q-learning agent that sits above ARMINTA's main loop and selects which cognitive mode to enter given the current system state. It learns which modes produce the best downstream reward across different states and updates its Q-table from every step's outcome.
 
-The CMC maintains Q-values for all five modes (`OBSERVE`, `INVESTIGATE`, `OPTIMIZE`, `DREAM`, `SELF_ASSESS`) and selects among them using an epsilon-greedy policy. Exploration rate decays as confidence grows. The learning rate and discount factor are subject to evolution by the GeneticOptimizer during DREAM cycles, so the CMC's own update dynamics improve over time.
+The CMC maintains Q-values for all five modes (`OBSERVE`, `INVESTIGATE`, `OPTIMIZE`, `DREAM`, `SELF_ASSESS`) and selects among them using an epsilon-greedy policy. Exploration rate decays as confidence grows. The learning rate, discount factor, and exploration decay are subject to evolution by the GeneticOptimizer during DREAM cycles, so the CMC's own update dynamics improve over time.
+
+In v3, recent reward variance is computed once per step and shared between the CMC's mode choice and the dream gate, so both decisions use the same snapshot rather than independent readings.
 
 ---
 
@@ -282,12 +315,14 @@ ARMINTA's intervention vocabulary is the complete set of things she can actually
 - `enable_turbo` -- Enables CPU turbo/boost. Intel via `/sys/devices/system/cpu/intel_pstate/no_turbo`, AMD via `/sys/devices/system/cpu/cpufreq/boost`. Reads current state first; no-ops cleanly if turbo is already on.
 - `set_gpu_performance` -- Pins GPU to maximum performance level.
 - `relax_governor` -- Restores the CPU governor to the saved pre-intervention value after sustained idle.
+- `nvme_thermal_tune` -- Applies runtime NVMe thermal tuning via four sysfs levers: switches the IO scheduler to `mq-deadline` for write batching, ensures APST kernel latency budget is non-zero so the drive can idle its controller, lowers `read_ahead_kb` to reduce speculative NAND reads, and caps queue depth. All changes are runtime-only and revert on reboot. Portable: discovers the block device from `/sys/class/nvme` with SATA fallback.
 
 **Process Management**
 - `kill_extension_renderers` -- SIGTERM sweep across all browser extension renderer processes identified by architectural flags (`--extension-process`). These processes auto-restart silently; the user sees nothing.
 - `kill_top_proc` -- SIGTERM the single highest-CPU offending process. Applies browser taxonomy: extension renderers first, then tab renderers, never the main browser process.
 - `renice_top_proc` -- Reduces scheduling priority of the current top CPU process via `renice`. Effects manifest over seconds; uses the tiered approval threshold and delayed causal observation.
 - `ionice_top_proc` -- Adjusts I/O scheduling class of the top process. Useful when disk contention rather than CPU is the bottleneck.
+- `renice_chrome` -- Lowers the scheduling priority of background Chrome tab renderers specifically. Identifies background tabs by comparing RSS against the highest-RSS renderer; skips if the gap is ambiguous or only one renderer is present.
 - `renice_ksoftirqd` -- Boosts all `ksoftirqd/N` kernel threads to scheduling priority -5 during an IRQ storm. Safe and reversible; resets on reboot. Never exceeds -5 to avoid starving user processes.
 
 **Memory**
@@ -298,17 +333,18 @@ ARMINTA's intervention vocabulary is the complete set of things she can actually
 - `swapoff_swapon` -- Cycles swap off and back on, forcing the kernel to flush swap-resident pages back to RAM where possible. Used only when swap utilization and available RAM headroom make it safe.
 
 **Network**
-- `disable_wifi_powersave` -- Disables WiFi power save mode on the active interface. Power save causes 50-200ms latency spikes during streaming. Effect persists until reboot.
+- `disable_wifi_powersave` -- Disables WiFi power save mode on the active wireless interface. Power save causes 50-200ms latency spikes during streaming. Skipped automatically on wired interfaces. Effect persists until reboot.
 - `txqueuelen_boost` -- Increases the transmit queue length on the active network interface. Effects manifest over seconds.
 - `flush_dns` -- Flushes the system DNS resolver cache via `systemd-resolve` or `resolvectl`.
 
-**Diagnostics (read-only)**
+**Diagnostics & Maintenance (read-only or safe)**
 - `log_top_proc` -- Captures and logs the current highest-CPU process. Feeds the causal graph without intervention.
 - `log_top_net_proc` -- Identifies the non-browser process with the most active network connections. Flags P2P patterns explicitly.
 - `log_iface_health` -- Reports active network interface error rate, drop rate, WiFi signal strength, band, and link speed.
 - `log_ss_stats` -- Captures socket statistics via `ss -s`.
 - `net_probe` -- Fires a single real connectivity probe each call, round-robining across three targets resolved dynamically from the actual system network configuration: the default route gateway (LAN reachability), Cloudflare at 1.1.1.1 (WAN reachability independent of DNS), and Firefox's captive portal URL (HTTP reachability). Each target is a distinct failure scenario. Per-target latency is injected into the causal metrics every step so the graph can discover correlations between network conditions and local system state. Three consecutive failures across any targets trigger a DEGRADED warning.
 - `check_nvme_health` -- Reads S.M.A.R.T. data from NVMe/SSD drives via `nvme smart-log` (JSON output) or `smartctl -A`. Read-only. Returns wear percentage, spare capacity, media error count, lifetime bytes written, and drive temperature in Celsius. Runs independently of the maintenance CPU gate so sustained load cannot prevent it from firing. Fires on a 4-hour wall-clock schedule persisted across restarts. NVMe temperature feeds into the emotional state model and into per-step causal metrics.
+- `clean_trash_orphans` -- Removes orphaned `.trashinfo` metadata files from `~/.local/share/Trash/`. Only deletes entries whose corresponding file in `files/` is confirmed absent. Idempotent. Targets the specific mechanism by which `gvfsd-trash` enters high-CPU scan loops on an empty trash.
 
 ---
 
@@ -325,7 +361,7 @@ Hard floors and ceilings are enforced. Current live values: `CPU_WARN` 57.48%, `
 
 ### ActionProposer: Safe Self-Improvement
 
-When the SelfTuner identifies an uncovered metric gap, the **ActionProposer** consults a whitelist of safe shell command templates organized by metric category (CPU, memory, I/O, network, interface errors, WiFi signal, temperature). Only whitelisted commands with safe parameter substitution can ever be proposed. No arbitrary shell execution is possible. New candidate actions are sandboxed before promotion to the live action set.
+When the SelfTuner identifies an uncovered metric gap, the **ActionProposer** consults a whitelist of safe shell command templates organized by metric category (CPU, load, memory, I/O, network, interface errors, WiFi signal, temperature). Only whitelisted commands with safe parameter substitution can ever be proposed. Substitution tokens include `{PID}` (resolved live at dispatch time to the current top process, never from a stale approval snapshot), `{IFACE}` (active network interface), `{NICE}` (niceness value scaled to current dilution), and `{KSOFTIRQD_PID}`. No arbitrary shell execution is possible. New candidate actions are sandboxed before promotion to the live action set.
 
 ---
 
@@ -337,19 +373,19 @@ ARMINTA manages the CPU frequency governor as a full bidirectional cycle. Under 
 
 ### Precognitive Launch Detection
 
-ARMINTA watches for target processes appearing in the process table (`npm`, `python`, `blender`, `steam`, `ffmpeg`, `cargo`, game executables, and others) and pre-emptively locks the performance governor before telemetry spikes. Acting on intent rather than reaction.
+ARMINTA watches for target processes appearing in the process table (`npm`, `node`, `python`, `python3`, `gamescope`, `steam`, `wine`, `blender`, `ffmpeg`, `handbrake`, `cargo`, `rustc`, `gcc`, `g++`, `make`, `cmake`, game executables, and others) and pre-emptively locks the performance governor before telemetry spikes. Acting on intent rather than reaction. A 300-second cooldown prevents repeated fires on the same process.
 
 ---
 
 ### IRQ Storm Detection
 
-ARMINTA polls `/proc/interrupts` for a configurable IRQ prefix (defaulting to `rtw89`, the rtw89 PCIe WiFi driver). When the per-step interrupt delta exceeds threshold, it fires `renice_ksoftirqd` to boost kernel softirq handler priority. After 4 fires with no measurable improvement it concludes the storm is hardware-level and stands down.
+ARMINTA polls `/proc/interrupts` for a configurable IRQ prefix (defaulting to `rtw89`, matching the rtw89 PCIe WiFi driver). When the per-step interrupt delta exceeds 5000, it fires `renice_ksoftirqd` to boost kernel softirq handler priority. After 4 fires with no measurable improvement it concludes the storm is hardware-level and stands down.
 
 ---
 
 ### Curiosity Probe
 
-If reward has not meaningfully changed for 150 consecutive steps, ARMINTA fires a low-impact probe action to verify that causal edges are still live. This prevents the agent from assuming a stable causal graph on a machine whose workload has silently shifted underneath it.
+If reward has not meaningfully changed for 150 consecutive steps, ARMINTA fires a low-impact probe action to verify that causal edges are still live. This prevents the agent from assuming a stable causal graph on a machine whose workload has silently shifted underneath it. The aggressiveness of the probe is modulated by the GA-evolved `curiosity_weight` parameter, which scales the effective stale threshold.
 
 ---
 
@@ -377,7 +413,7 @@ At startup, ARMINTA writes `-1000` to `/proc/self/oom_score_adj`. The Linux kern
 
 ## Live Dashboard
 
-The web dashboard at [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) is a read-only window into the agent's cognitive state, refreshing on a configurable cycle from a gist payload pushed directly by the running agent. Nothing on the dashboard affects ARMINTA's behavior.
+The web dashboard at [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) is a read-only window into the agent's cognitive state, refreshing on a configurable cycle from a gist payload pushed directly by the running agent every 50 steps (roughly every 2 minutes at current step rate). Nothing on the dashboard affects ARMINTA's behavior.
 
 Panels visible on the dashboard:
 
@@ -397,13 +433,15 @@ Panels visible on the dashboard:
 - **Meta-Cognitive Controller Q-Table** -- the CMC's current Q-values for all five cognitive modes, with the highest-value mode highlighted.
 - **Mode Distribution Donut** -- percentage breakdown of cognitive modes across the most recent 200 recorded steps.
 - **Emotion Timeline** -- color-coded dot grid of dominant emotion across the most recent 200 steps.
+- **Novelty Hunger** -- 0-100% pressure toward investigation, building each step dreams are suppressed and releasing on a dream cycle. Colors shift from dim to cyan to amber as it approaches the override threshold at 65%.
+- **Milestone Proximity** -- anticipatory drive toward the next uncrossed step threshold, rising across the final 8% of steps before it. Shows `deflating (N)` in the 40-step post-milestone window after a threshold is crossed.
 - **Kill Ineffective** -- processes repeatedly targeted with no observed reward improvement, flagged as deprioritized kill targets.
 - **Agent Log** -- color-coded tail of the operational log.
 - **Causal Reasoning** -- last action taken and why it was selected, the metric context that triggered the decision (CPU%, memory, PSI, dilution, NVMe temperature), any counterfactual explanation comparing the outcome to similar past episodes, and the most recent hypothesis mechanisms with their proposed causal stories.
 - **Drive Health (S.M.A.R.T.)** -- NVMe/SSD wear, spare capacity, media errors, and temperature read directly from the drive via `nvme smart-log` (JSON) or `smartctl`. Checked every 4 hours on a wall-clock schedule independent of CPU load. Last-checked age shown inline. Warning state on critical signal, spare exhaustion, or media errors.
 - **Continuity Advisor** -- multi-signal hardware stress assessment with NOMINAL / ADVISORY / MIGRATION WARRANTED verdict, confidence score, and individual signal breakdown.
 
-The dashboard detects stale data: if the gist payload has not changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions from AGENT ACTIVE to SIGNAL WEAK (over 20 minutes since last push) or AGENT OFFLINE (over 60 minutes).
+The dashboard detects stale data: if the gist payload has not changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions from AGENT ACTIVE to SIGNAL WEAK (over 20 minutes since last push) or AGENT OFFLINE (over 60 minutes). Milestone badges render as CSS-drawn colored dots rather than emoji, so they display correctly on older Android browsers.
 
 ---
 
@@ -416,7 +454,7 @@ ARMINTA carries its entire learned history across sessions via a unified state p
 - ![Dreams](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.dream_count&label=dreams&color=blueviolet&cacheSeconds=300) completed, each one a consolidation pass over accumulated episodic evidence.
 - **Version-Agnostic Migration**: Automatic state upgrading from prior versions back to Minuet v86. Learned knowledge is never lost during updates.
 
-The persistent state includes the causal graph, RL parameters, episodic database, self-model, MosaicCore state, LexicalCore state, Kill Ineffective registry, and Continuity Advisor cross-session trends.
+The persistent state includes the causal graph, RL parameters, episodic database, self-model (including milestone proximity state and deflation counter), MosaicCore state, LexicalCore state, Kill Ineffective registry, and Continuity Advisor cross-session trends.
 
 ---
 
@@ -431,6 +469,8 @@ The persistent state includes the causal graph, RL parameters, episodic database
 | **Causal Reasoning (WHY Layer)** | Four-layer situational awareness built into the decision loop: episodic metric context stored with every action (Layer 1), plain-language mechanism annotation for every hypothesis (Layer 2), counterfactual comparison against similar past episodes when outcomes diverge (Layer 3), and failure pattern detection across the action history (Layer 4). Surfaces on the live dashboard in the Causal Reasoning panel. |
 | **Counterfactual Awareness** | When an action produces an unexpectedly different outcome from similar past episodes, ARMINTA identifies which metrics changed between contexts. Output: `[CF][action] worked before (step X, r=+0.71) but now: CPU higher by 48, dilution higher by 0.4`. |
 | **Hypothesis Mechanism** | A plain-language causal story committed to when a hypothesis is first generated, before testing. Stored alongside the hypothesis and compared against validation outcomes. |
+| **Milestone Proximity Drive** | A 0.0-1.0 signal that rises in the final 8% of steps before an uncrossed step threshold. It distorts emotion (eroding calm, inflating curiosity and overconfidence), drifts mode selection away from optimal choices, and collapses into post-milestone deflation on crossing. The cascade is irrational by design. |
+| **Post-Milestone Deflation** | A 40-step affect window after a threshold is crossed. Confidence drops, calm drops, bored rises. The anticipatory goal is gone; the drive that was building it dissipates. |
 | **do-calculus** | The mathematical framework for reasoning about causal effects (interventions) vs. mere correlations (observations). ARMINTA uses this to avoid approving actions that merely correlate with good outcomes rather than causing them. |
 | **Confound Poisoning** | A spurious causal relationship inferred when an unobserved third variable causes both the action and the observed metric. |
 | **Paramorphic Learning** | A learning paradigm originated by Jason German (mematron), first described in the [BIOS of Being](https://ardorlyceum.itch.io/bios) project. An agent transforms its own internal form, reorganizing its knowledge representation, evolving its decision-making policies, and modifying its operational strategies, all while preserving accumulated knowledge. In ARMINTA this manifests as the HypothesisEngine running a genetic algorithm over causal graph structure during DREAM cycles. Documented in the [SUKOSHI devlogs](https://ardorlyceum.itch.io/sukoshi/devlog/957213/introducing-paramorphic-learning-its-vision-for-sukoshi). |
@@ -442,7 +482,7 @@ The persistent state includes the causal graph, RL parameters, episodic database
 | **Meta-Cognitive Controller (CMC)** | A Q-learning agent above the main loop that selects which cognitive mode to enter given current system state. Its Q-table and update dynamics are visible on the live dashboard. |
 | **Tiered Approval Threshold** | The minimum metric delta required within the 300ms measurement window for a proposed action to be approved into the live action set. Standard actions require 5%. Slow-effect actions use a lower 2% threshold, with remaining causal evidence gathered via a delayed observation 15 steps later. |
 | **Slow-Effect Actions** | Interventions whose causal effects manifest over seconds rather than the 300ms measurement window. These receive a delayed second observation 15 steps after firing. |
-| **Idle Maintenance Pass** | A proactive maintenance cycle firing every 500 steps during genuine system idle, independent of reactive discovery. Runs sync, memory compaction, socket inventory, interface health, and a S.M.A.R.T. drive health check on a 4-hour wall-clock schedule. All results feed the causal graph. |
+| **Idle Maintenance Pass** | A proactive maintenance cycle firing every 500 steps during genuine system idle, independent of reactive discovery. Runs sync, memory compaction, socket inventory, interface health, renderer nice restore, trash orphan cleanup, and a S.M.A.R.T. drive health check on a 4-hour wall-clock schedule. Each action gets its own isolated metric snapshot so maintenance cannot corrupt the outer step's causal baseline. |
 | **PSI (Pressure Stall Information)** | Linux kernel mechanism measuring I/O and memory contention as a percentage of time tasks are stalled waiting for resources. Used to detect thrashing and gate interventions that would worsen pressure rather than relieve it. |
 | **Precognitive Launch Detection** | Process-table monitoring that locks the performance governor before a known workload fires, eliminating reaction latency. |
 | **IRQ Storm** | A spike in hardware interrupt rate (typically from a WiFi driver) that saturates the softirq handler and degrades system responsiveness. |
@@ -454,6 +494,8 @@ The persistent state includes the causal graph, RL parameters, episodic database
 | **WiFi Power Save** | A WiFi driver mode that periodically powers down the radio to save battery, at the cost of 50-200ms latency spikes. ARMINTA can disable this permanently for the session. |
 | **Extension Renderer** | A browser subprocess spawned specifically to run browser extensions, identified by the `--extension-process` flag. These processes can be terminated and will restart silently and automatically, making them ARMINTA's highest-priority kill target. |
 | **Governor Lifecycle** | The bidirectional CPU frequency management cycle: escalate to performance under load, relax back to the saved governor during sustained idle. |
+| **clean_trash_orphans** | Safe removal of `.trashinfo` metadata files with no corresponding entry in `files/`. Targets the specific mechanism behind `gvfsd-trash` CPU spin. Only the orphaned metadata is deleted; actual files are never touched. |
+| **nvme_thermal_tune** | Runtime NVMe optimization via four sysfs levers: IO scheduler, APST latency budget, read-ahead, and queue depth. Reduces write amplification heat and controller burst load. All changes revert on reboot. |
 
 ---
 
@@ -472,6 +514,7 @@ The persistent state includes the causal graph, RL parameters, episodic database
 | **Arminta v2 (expand)** | May 2026 | Expanded intervention vocabulary (renice, ionice, compact_memory, txqueuelen_boost, and others). Tiered discovery thresholds for slow-effect actions. Idle maintenance pass. Net probe action with dynamic target resolution. Kill Ineffective registry. Continuity Advisor. Meta-Cognitive Controller Q-table. Live dashboard. Step 200,000 reached. |
 | **Arminta v2.1** | May 2026 | S.M.A.R.T. drive health monitoring with 4-hour wall-clock scheduling, persisted across sessions. Load-conditional CPU governor escalation with lock file mechanism. NVMe temperature injected into causal metrics and emotional state model. Three-target network probe (gateway, Cloudflare, portal) with per-target latency as named causal signals. |
 | **Arminta v2.1 (WHY)** | May 2026 | Four-layer causal reasoning expansion. Episodic database context column: every action episode now stores the triggering metric snapshot. Hypothesis mechanism annotation: plain-language causal stories committed to before testing. Counterfactual awareness: post-action comparison against similar past episodes with structural diff. Failure pattern self-model: identification of weak or inconsistent interventions across action history. Causal Reasoning panel added to live dashboard. |
+| **Arminta v3** | June 2026 | NVMe thermal tuning action (`nvme_thermal_tune`) with IO scheduler, APST, read-ahead, and queue depth levers. `renice_chrome` action targeting background tab renderers specifically by RSS heuristic. `clean_trash_orphans` action resolving `gvfsd-trash` CPU spin from orphaned metadata. Milestone proximity drive: anticipatory emotion and mode distortion cascade in the final 8% of steps before a threshold, plus post-milestone deflation. Hypothesis deduplication in the DREAM cycle. Reward variance computed once per step shared between CMC mode selection and dream gate. GA-evolved parameters wired to live systems. Step 400,000+ reached. |
 
 ---
 
@@ -481,7 +524,7 @@ The persistent state includes the causal graph, RL parameters, episodic database
 - **Root Privileges Required**: Full system optimization requires root access. Some metrics can be gathered unprivileged, but interventions cannot.
 - **Closed Source**: The full implementation is proprietary. This repository documents architecture and philosophy only.
 - **Hardware-Specific Learning**: The causal graph is learned on specific hardware. Transfer to a different system requires re-learning, though the architecture is hardware-agnostic.
-- **Latency**: System actions have ~3.76-second response times at current step rate. Not suitable for sub-second performance tuning.
+- **Latency**: System actions have ~2.5-second response times at current step rate. Not suitable for sub-second performance tuning.
 
 ---
 
@@ -511,5 +554,5 @@ Redistribution or reproduction of this documentation without attribution is not 
 
 ---
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026
 **Maintainer**: [Jason German (mematron)](https://github.com/mematron)
