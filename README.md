@@ -2,11 +2,11 @@
 
 ### Autonomous Causal Discovery Agent for Linux
 
-ARMINTA is a Python-based autonomous agent running continuously on a Linux machine. It does not monitor the OS passively. It intervenes, measures what changed, and builds a causal model of the machine from the ground up. Every edge in that model was earned by doing something and watching what happened.
+ARMINTA is a Python-based autonomous agent running continuously on a Linux machine. It does not monitor the OS passively. It intervenes, measures what changed, and builds a causal model of the machine from scratch. Every edge in that model was earned by doing something and watching what happened.
 
 The stats below are live, pushed directly from the running agent:
 
-![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **<a href="https://mematron.github.io/arminta-status">Live Agent Dashboard</a>** showing real-time cognitive state, emotion, and telemetry pushed directly from the running agent.
+![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **<a href="https://mematron.github.io/arminta-status">Live Agent Dashboard</a>** — real-time cognitive state, emotion, causal graph, and telemetry pushed directly from the running agent.
 
 > **Source Status**: Closed source. This repository documents the architecture, design philosophy, and version lineage of the ARMINTA engine.
 
@@ -20,7 +20,7 @@ The stats below are live, pushed directly from the running agent:
 - **Privileges**: Root access (ARMINTA runs as a privileged background daemon)
 - **Dependencies**: `psutil`, `numpy`, `curses` (stdlib), `nvme-cli`, `smartmontools`. Standard Linux utilities used at runtime: `iw`, `iwconfig`, `renice`, `ionice`, `ip`, `ss`, `ethtool`, `ping`. PSI support requires kernel 4.20+.
 
-### Installation & Deployment
+### Installation and Deployment
 ARMINTA deploys as a persistent system service. On first activation:
 
 1. It initializes its learned state, or starts with an empty causal graph if this is the first run.
@@ -29,10 +29,10 @@ ARMINTA deploys as a persistent system service. On first activation:
 4. The agent's emotional state and decision rationale are accessible through the episodic log.
 
 ### Observing Behavior
+- **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) — the primary window into the running agent. Sections are ordered from immediate operational status at the top through historical and configuration data lower down.
 - **Episodic Database**: Query `arminta_episodic.db` for a complete record of every action, outcome, and self-assessment. Each episode stores a `context` column containing the metric snapshot that triggered the event, enabling counterfactual replay.
 - **State Snapshot**: The current world model and learned parameters are serialized in a versioned pickle file.
 - **System Metrics**: Ground truth comes from standard Linux interfaces including `/proc/meminfo`, PSI, and thermal sensors.
-- **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) displays real-time cognitive state, emotion bars, causal edges, reward history, and the Continuity Advisor. Data is pushed from the running agent via gist on a configurable cycle.
 
 ---
 
@@ -57,7 +57,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 ARMINTA runs as a root-privileged background process. Every few seconds (adaptive and self-tuned via autonomous self-modifications), it does the following:
 
 1. **Sampling**: Collects ~28 system metrics across CPU, memory, thermals, network, I/O, swap, Pressure Stall Information (PSI), IRQ state, and NVMe drive health.
-2. **Classification**: Derives the current **"Session Geometry"**, a workload fingerprint based on resource ratios rather than process names, enabling context-aware decisions.
+2. **Classification**: Derives the current **Session Geometry**, a workload fingerprint based on resource ratios rather than process names, enabling context-aware decisions.
 3. **Cognitive Selection**: A Q-learning Mode Controller picks an operational posture: `OBSERVE` (passive learning), `INVESTIGATE` (active exploration), `OPTIMIZE` (targeted intervention), `DREAM` (offline consolidation), or `SELF_ASSESS` (introspection and self-modification).
 4. **Action Execution**: Within the chosen mode, the causal graph and learned confidence scores decide which system action, if any, to take.
 5. **Measurement**: Captures the before/after delta across targeted metrics within a 300ms window, isolating causal effects.
@@ -87,6 +87,7 @@ graph TD
     classDef self fill:#1a0d1a,stroke:#c084fc,stroke-width:1px,color:#c084fc;
     classDef advisor fill:#0d1a0d,stroke:#98c379,stroke-width:1px,color:#98c379;
     classDef v4 fill:#0d1a1a,stroke:#f38ba8,stroke-width:1px,color:#f38ba8;
+    classDef situation fill:#1a1a0d,stroke:#ffb300,stroke-width:1px,color:#ffb300;
 
     ModeController["Mode Controller <br/> (DDQN over Cognitive Postures)"]
     EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log + Metric Context)"]:::memory
@@ -107,12 +108,25 @@ graph TD
     DDQNQTable["DDQNQTable <br/> (Online + Target Networks for CMC bootstrapping)"]:::v4
     RewardVector["RewardVector <br/> (Hierarchical decomposition: immediate / durable / health)"]:::v4
     TemporalCausalGraph["TemporalCausalGraph <br/> (Lagged edge discovery)"]:::v4
+    SomaticConfidenceModel["SomaticConfidenceModel <br/> (Per-situation signal reliability; Spidey Sense events)"]
+    GeneticOptimizer["GeneticOptimizer <br/> (GA evolution of RL hyperparameters against reward history)"]
+    SituationModel["SituationModel <br/> (Session Geometry: workload fingerprint + situated edge tables)"]:::situation
+    CircadianPredictor["CircadianPredictor <br/> (Hour-of-day CPU pattern; governor pre-arm on prediction)"]
+    AnomalyClusterer["AnomalyClusterer <br/> (Crystallises recurring anomaly patterns into named clusters)"]
+    FalsificationScheduler["FalsificationScheduler <br/> (Flags stale hypotheses for dream-cycle re-testing)"]
+    InformationGainEstimator["InformationGainEstimator <br/> (Selects highest-uncertainty probe action in INVESTIGATE)"]
+    CausalRollout["CausalRollout <br/> (Beam-search action planning over the causal graph)"]
+    PolicyDistiller["PolicyDistiller <br/> (Warm priors + few-shot transfer across situation contexts)"]
+    WorkingMemory["WorkingMemory <br/> (Short-term anomaly and counterfactual salience buffer)"]
 
     ModeController -->|Selects Mode| BayesianPerception
     BayesianPerception -->|Updates Belief| ModeController
     EmotionalState -->|Modulates Thresholds| ModeController
     ModeController -->|Triggers Dream| DreamCycle
     DreamCycle -->|Evolves Hypotheses| HypothesisEngine
+    DreamCycle -->|Evolves Parameters| GeneticOptimizer
+    DreamCycle -->|Falsification Pass| FalsificationScheduler
+    GeneticOptimizer -->|Updated RL Params| ModeController
     HypothesisEngine -->|Refines Edges| WorldModel
     HypothesisEngine -->|Annotates Mechanism| CausalReasoning
     WorldModel -->|Logs Anomalies| EpisodicMemory
@@ -130,6 +144,8 @@ graph TD
     DreamCycle -->|Generates Mechanisms| CausalReasoning
     LexicalCore -->|Logs Statements| EpisodicMemory
     EmotionalState -->|Surprise Signal| LexicalCore
+    EmotionalState -->|Spidey Sense Input| SomaticConfidenceModel
+    SomaticConfidenceModel -->|Signal Reliability Weights| ModeController
     EpisodicMemory -->|Counterfactual Query| CausalReasoning
     CausalReasoning -->|Structural Diff| WorldModel
     EpisodicMemory -->|Cross-Session Trends| ContinuityAdvisor
@@ -145,11 +161,24 @@ graph TD
     RewardVector -->|Decomposed Signal| WorldModel
     WorldModel -->|Lag Attribution| TemporalCausalGraph
     TemporalCausalGraph -->|Delayed Effects| CausalReasoning
+    SituationModel -->|Workload Context| ModeController
+    SituationModel -->|Situated Edge Lookup| WorldModel
+    SituationModel -->|Counterfactual Correction| CausalReasoning
+    CircadianPredictor -->|Predicted Load| ModeController
+    CircadianPredictor -->|Governor Pre-arm| MetaCognition
+    AnomalyClusterer -->|Named Patterns| EpisodicMemory
+    AnomalyClusterer -->|Cluster Signals| CausalReasoning
+    FalsificationScheduler -->|Stale Hypotheses| HypothesisEngine
+    InformationGainEstimator -->|Best Probe Action| ModeController
+    CausalRollout -->|Action Plan| ModeController
+    PolicyDistiller -->|Warm Priors| WorldModel
+    WorkingMemory -->|Anomaly Salience| CausalReasoning
+    WorkingMemory -->|Recent Counterfactuals| EpisodicMemory
 ```
 
 ---
 
-### The Dream Cycle: Consolidation & Paramorphic Learning
+### The Dream Cycle: Consolidation and Paramorphic Learning
 
 When CPU load drops and PSI pressure is low, the mode controller switches to `DREAM`. No interventions run. No metrics are watched for a breach. ARMINTA runs offline processing against its accumulated episodic record.
 
@@ -158,11 +187,11 @@ When CPU load drops and PSI pressure is low, the mode controller switches to `DR
 What runs during a DREAM cycle:
 
 - **Hypothesis Evolution**: The **HypothesisEngine** runs a genetic algorithm over the causal graph, generating candidate relationships, scoring them against episodic history, keeping what holds, and discarding what does not. Each hypothesis includes a plain-language mechanism annotation explaining why the proposed relationship might exist, not just that it was observed. A deduplication pass prevents the same structural hypothesis from re-entering the population across cycles. ARMINTA refines its causal model without running new interventions. The live episode counter reflects this; each dream cycle adds to the total.
-- **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own RL parameters against rolling reward history. These parameters (learning rate, discount factor, exploration decay, reward scale, curiosity weight, and dream load threshold) are evolved continuously and drift across sessions as reward history shapes them.
+- **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own RL parameters against rolling reward history. These parameters (learning rate, discount factor, exploration decay, reward scale, curiosity weight, and dream load threshold) drift continuously as reward history shapes them.
 - **Consolidation**: The world model is pruned and accumulated prediction errors are cleared, keeping the internal representation focused on recent system behavior. A novelty gate extends the dream interval when the episode record has nothing structurally new to consolidate.
 - **MosaicCore and LexicalCore processing**: Open hypotheses in MosaicCore are tested against accumulated data. LexicalCore runs its co-occurrence pass over recent episodic records and attempts statement formation from updated symbol weights.
 
-DREAM is the dominant mode in the episode log. The machine spends most of its time idle; DREAM runs during idle. The high volume is a property of the environment, not a design target. Every cycle the hypothesis engine runs, the causal model sharpens without touching the system.
+DREAM is the dominant mode in the episode log. The machine spends most of its time idle; DREAM runs during idle. The high volume is a property of the environment, not a design target.
 
 ---
 
@@ -190,52 +219,68 @@ All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagg
 
 The process runs in four stages:
 
-- **Symbol Weights**: Every term she uses accumulates a reward-weighted co-occurrence score drawn from her episodic log. Action names, emotion labels, mode names, situation types. The weight is not assigned; it accretes from use. The symbol vocabulary consists of hundreds of weighted terms evolved over her operational history.
+- **Symbol Weights**: Every term she uses accumulates a reward-weighted co-occurrence score drawn from her episodic log. Action names, emotion labels, mode names, situation types. The weight is not assigned; it accretes from use. The symbol vocabulary currently spans 812 weighted terms evolved over her operational history.
 - **Co-occurrence Grammar**: Which symbols appear together in the same episode. Which follow which across consecutive records. No grammatical rules are supplied; the structure is read off statistical patterns in her own history. A bigram grammar engine extends this to pairwise transitions, tracking which symbol pairs are statistically predictive.
-- **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she has never made before, from grammar she observed herself.
+- **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she has never made before, from grammar she observed herself. 166 statements formed to date. 9 open questions currently unresolved.
 
 ---
 
-### Dashboard Features
+## Live Dashboard
 
-The **Live Agent Dashboard** provides a comprehensive view of the agent's internal state:
+The **[Live Agent Dashboard](https://mematron.github.io/arminta-status)** is organized as a narrative from top to bottom: immediate status, then live cognitive state, then what the agent has done and why, then the causal world model, then historical and learned patterns, then configuration at the bottom.
 
-- **Continuity Advisory Panel** -- multi-signal hardware stress assessment with NOMINAL / ADVISORY / MIGRATION WARRANTED verdict.
-- **Causal Graph -- Interactive D3 Force Layout** -- force-directed interactive graph of the strongest confirmed `(action, metric)` causal relationships. Filterable by situation geometry via dropdown.
-- **Action Reward Chart** -- mean reward per action over recent executions.
-- **Reward History Sparkline** -- per-step reward for the most recent steps, with a rolling average overlay.
-- **Network Health Probes** -- rolling dot strip of recent probe results.
-- **Open Questions / Mosaic Hypotheses** -- the current list of unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations.
-- **Web Learning** -- ![Pages Read](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_pages_read&label=pages%20read&color=blueviolet&cacheSeconds=300) ![Symbols Absorbed](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_new_symbols&label=symbols%20absorbed&color=purple&cacheSeconds=300). Updated with every WebLearner fire.
-- **Circadian CPU Pattern** -- average CPU usage by hour of day, learned across the agent's entire lifetime.
-- **Meta-Cognitive Controller Q-Table** -- the CMC's current Q-values for all cognitive modes.
-- **Mode Distribution Donut** -- percentage breakdown of cognitive modes across recent recorded steps.
-- **Emotion Timeline** -- color-coded dot grid of dominant emotion across recent steps.
-- **Novelty Hunger** -- pressure toward investigation, building each step dreams are suppressed and releasing on a dream cycle.
-- **Milestone Proximity** -- anticipatory drive toward the next uncrossed step threshold.
-- **Kill Ineffective** -- processes repeatedly targeted with no observed reward improvement.
-- **Agent Log** -- color-coded tail of the operational log.
-- **Causal Reasoning** -- last action taken and why, triggering metric context, and counterfactual explanations.
-- **Drive Health (S.M.A.R.T.)** -- NVMe/SSD wear, spare capacity, media errors, and temperature.
+**Immediate status**
+- **Hero Step Counter** — total empirical steps taken on target hardware, pulsing live.
+- **Mode / Situation / Reward Row** — current cognitive mode, workload geometry, rolling average reward, error step count, and confound rate at a glance.
+- **Reward History Sparklines** — three stacked charts: raw per-step reward bars, 10-step rolling average, and reward variance with the dream throttle floor line.
+- **Continuity Advisory** — multi-signal cross-session hardware stress verdict: NOMINAL / ADVISORY / MIGRATION WARRANTED. Third thing you see; impossible to miss if the agent needs attention.
 
-The dashboard detects stale data: if the gist payload has not changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions based on signal strength.
+**Live cognitive state**
+- **Emotional State** — dominant affect label and bar grid across all emotion dimensions.
+- **Somatic Confidence** — per-situation signal reliability weights, maturity phase, and Spidey Sense event log.
+
+**Scoreboard and recent operations**
+- **Cognitive Metrics** — stat cards for causal edges, dreams, hypotheses, interventions, self-modifications, mosaic hypotheses, age, sessions, novelty hunger, and milestone proximity.
+- **Milestones** — every landmark threshold the agent has crossed.
+- **Kill Ineffective + Agent Log** — processes flagged as repeat kill targets with no reward improvement, alongside the live color-coded operational log.
+- **Causal Reasoning** — last action taken, why it was chosen, the triggering metric context, and any counterfactual explanation.
+
+**Causal world model**
+- **Situation Distribution** — fuzzy blend of active situation weights across the last 50 steps, providing context for the causal graph below.
+- **Causal Graph** — four tabs: top interventional edges by effect magnitude, mean reward per action, interactive D3 force-directed graph filterable by situation geometry, and reward timeline colour-coded by situation with a scrubber for history.
+- **Network Health Probes** — rolling dot strip of recent probe results with last-seen targets and latency.
+- **Open Questions / Mosaic Hypotheses** — unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations.
+
+**Learned patterns**
+- **Circadian CPU + Meta-Cognitive Controller** — average CPU by hour of day learned across the agent's lifetime, alongside the CMC's current Q-values for all cognitive modes, mode distribution donut, and emotion timeline.
+
+**Configuration**
+- **Governor State** — current and saved CPU governor, override status, idle step counter, and bootstrap phase.
+- **Adaptive Thresholds** — live values for CPU, memory, dilution, and network warn thresholds as they drift from self-modification.
+- **Web Learner** — ![Pages Read](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_pages_read&label=pages%20read&color=blueviolet&cacheSeconds=300) ![Symbols Absorbed](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_new_symbols&label=symbols%20absorbed&color=purple&cacheSeconds=300) — autonomous web exploration log, fetch and discovery events, lexicon growth.
+- **Drive Health (S.M.A.R.T.)** — NVMe/SSD wear, spare capacity, media errors, and temperature.
+
+The dashboard detects stale data: if the gist payload has not changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions between AGENT ACTIVE, SIGNAL WEAK, and AGENT OFFLINE based on recency of the pushed data.
 
 ---
 
-## Persistence & Progress
+## Persistence and Progress
 
 ARMINTA carries its entire learned history across sessions via a unified state pickle and a dedicated episodic database:
 
 - ![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) of empirical learning on target hardware, updated live from the running agent.
-- ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) logged, documenting every major hypothesis, intervention, self-modification, mosaic discovery, and lexical statement.
+- ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) logged across ![Sessions](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.session_count&label=sessions&color=blue&cacheSeconds=300) sessions, documenting every major hypothesis, intervention, self-modification, mosaic discovery, and lexical statement.
 - ![Dreams](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.dream_count&label=dreams&color=blueviolet&cacheSeconds=300) completed, each one a consolidation pass over accumulated episodic evidence.
+- ![Uptime](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.uptime_display&label=uptime&color=green&cacheSeconds=300) total across all sessions. ![Self Mods](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.self_mods&label=self-modifications&color=ff80ab&cacheSeconds=300) autonomous self-modifications.
+- ![Hypotheses](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.hypotheses&label=hypotheses&color=orange&cacheSeconds=300) generated and tested. ![Causal Edges](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.causal_edges&label=causal%20edges&color=39ff14&cacheSeconds=300) confirmed interventional edges in the live graph.
+- ![Lexicon](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.symbol_count&label=lexicon%20size&color=b39ddb&cacheSeconds=300) weighted symbols in the lexical vocabulary. ![Concepts](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.queried_symbols&label=concepts%20queried&color=b39ddb&cacheSeconds=300) concepts resolved via web exploration. ![Statements](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.statements_formed&label=statements%20formed&color=b39ddb&cacheSeconds=300) original statements formed from observed grammar.
 - **Version-Agnostic Migration**: Automatic state upgrading from prior versions. Learned knowledge is never lost during updates.
 
 The persistent state includes the causal graph, temporal causal graph (lagged edges), RL parameters, episodic database, semantic index, self-model, MosaicCore state, LexicalCore state, Kill Ineffective registry, and Continuity Advisor cross-session trends.
 
 ---
 
-## Terminology & Key Concepts
+## Terminology and Key Concepts
 
 | Term | Definition |
 |---|---|
@@ -298,11 +343,11 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **Arminta v2.1** | S.M.A.R.T. drive health monitoring. Load-conditional CPU governor escalation. NVMe temperature injected into causal metrics and emotional state. Three-target network probe. |
 | **Arminta v2.1 (WHY)** | Four-layer causal reasoning expansion. Episodic database context column. Hypothesis mechanism annotation. Counterfactual awareness. Failure pattern self-model. |
 | **Arminta v3** | NVMe thermal tuning. `renice_chrome` action. `clean_trash_orphans` action. Milestone proximity drive and post-milestone deflation. Hypothesis deduplication. GA-evolved parameters wired to live systems. |
-| **Arminta v4** | Major architectural expansion. **Temporal Causal Graph**: lag discovery for `(action, metric, lag)` attribution. **Hierarchical Reward Decomposition**: RewardVector with immediate, durable, and health components. **SCM upgrade**: BayesianEdge structures with bimodal detection and credible interval bootstrapping. **DDQN CMC**: online + target network architecture. **WebLearner**: autonomous web exploration. **QuestionResolver**: closes the open-question → lexical graduation loop. **SemanticIndex**: vector retrieval for counterfactual queries. **Situation-Conditional Edges**: per-geometry edge tables. **Apprehensive drive**: eighth emotional state. **InformationGainEstimator**, **CausalRollout**, **PolicyDistiller**, **AnomalyClusterer**, **CircadianPredictor**, **FalsificationScheduler**, and **RiskMatrix** modules. |
+| **Arminta v4** | Major architectural expansion. **Temporal Causal Graph**: lag discovery for `(action, metric, lag)` attribution. **Hierarchical Reward Decomposition**: RewardVector with immediate, durable, and health components. **SCM upgrade**: BayesianEdge structures with bimodal detection and credible interval bootstrapping. **DDQN CMC**: online + target network architecture. **WebLearner**: autonomous web exploration. **QuestionResolver**: closes the open-question to lexical graduation loop. **SemanticIndex**: vector retrieval for counterfactual queries. **Situation-Conditional Edges**: per-geometry edge tables. **Apprehensive drive**: eighth emotional state. **InformationGainEstimator**, **CausalRollout**, **PolicyDistiller**, **AnomalyClusterer**, **CircadianPredictor**, **FalsificationScheduler**, and **RiskMatrix** modules. |
 
 ---
 
-## Known Limitations & Constraints
+## Known Limitations and Constraints
 
 - **Linux-Only**: Designed exclusively for Linux systems with modern PSI support.
 - **Root Privileges Required**: Full system optimization requires root access.
@@ -322,13 +367,13 @@ ARMINTA is the local substrate predecessor to [SUKOSHI](https://ardorlyceum.itch
 
 ARMINTA exists within a larger system of autonomous agents and cognitive frameworks:
 
-- **[ardorlyceum.itch.io](https://ardorlyceum.itch.io)** -- BIOS of Being registry and interactive terminal
-- **[mematron.hearnow.com](https://mematron.hearnow.com)** -- *BIOS_OS: The Sonification Cycle*
-- **[keygentia.netlify.app](https://keygentia.netlify.app)** -- Keygentia Taxonomy Engine (Node 03)
+- **[ardorlyceum.itch.io](https://ardorlyceum.itch.io)** — BIOS of Being registry and interactive terminal
+- **[mematron.hearnow.com](https://mematron.hearnow.com)** — *BIOS_OS: The Sonification Cycle*
+- **[keygentia.netlify.app](https://keygentia.netlify.app)** — Keygentia Taxonomy Engine (Node 03)
 
 ---
 
-## License & Attribution
+## License and Attribution
 
 ARMINTA is closed-source software. This repository serves as a public record of the engine's design philosophy and evolution, and remains the intellectual property of [Jason German (mematron)](https://github.com/mematron).
 
