@@ -91,35 +91,44 @@ graph TD
     classDef v4 fill:#0d1a1a,stroke:#f38ba8,stroke-width:1px,color:#f38ba8;
     classDef situation fill:#1a1a0d,stroke:#ffb300,stroke-width:1px,color:#ffb300;
 
-    ModeController["Mode Controller <br/> (DDQN over Cognitive Postures)"]
-    EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log + Metric Context)"]:::memory
-    BayesianPerception["BayesianPerception <br/> (Belief Updating & Noise Smoothing)"]
-    WorldModel["WorldModel <br/> (State-Action Outcome Statistics)"]
-    EmotionalState["EmotionalState <br/> (Affective Modulation: Calm, Bored, Stressed, Apprehensive, etc.)"]
-    HypothesisEngine["HypothesisEngine <br/> (Genetic Algorithm over Causal Nodes)"]
-    MetaCognition["MetaCognition <br/> (AST-Based Source Code Rewriting)"]
-    DreamCycle["DreamCycle <br/> (Consolidation & Paramorphic Learning)"]
-    MosaicCore["MosaicCore <br/> (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
-    LexicalCore["LexicalCore <br/> (Emerging Language: Symbol Weights, Grammar, Open Questions)"]:::lexical
-    CausalReasoning["CausalReasoning <br/> (WHY Layer: Context, Mechanism, Counterfactual, Failure Patterns)"]:::why
-    SelfModel["SelfModel <br/> (Operational History, Milestone Drive, Proximity Anticipation)"]:::self
-    ContinuityAdvisor["ContinuityAdvisor <br/> (Cross-Session Hardware Stress: NOMINAL / ADVISORY / MIGRATION)"]:::advisor
-    WebLearner["WebLearner <br/> (Autonomous Web Exploration; Wikipedia + MDN; LexicalCore seeding)"]:::v4
-    QuestionResolver["QuestionResolver <br/> (Closes open-question → inhibition → lexical graduation loop)"]:::v4
-    SemanticIndex["SemanticIndex <br/> (20-dim cosine similarity episodic retrieval)"]:::v4
-    DDQNQTable["DDQNQTable <br/> (Online + Target Networks for CMC bootstrapping)"]:::v4
-    RewardVector["RewardVector <br/> (Hierarchical decomposition: immediate / durable / health)"]:::v4
-    TemporalCausalGraph["TemporalCausalGraph <br/> (Lagged edge discovery)"]:::v4
-    SomaticConfidenceModel["SomaticConfidenceModel <br/> (Per-situation signal reliability; Spidey Sense events)"]
-    GeneticOptimizer["GeneticOptimizer <br/> (GA evolution of RL hyperparameters against reward history)"]
-    SituationModel["SituationModel <br/> (Session Geometry: workload fingerprint + situated edge tables)"]:::situation
-    CircadianPredictor["CircadianPredictor <br/> (Hour-of-day CPU pattern; governor pre-arm on prediction)"]
-    AnomalyClusterer["AnomalyClusterer <br/> (Crystallises recurring anomaly patterns into named clusters)"]
-    FalsificationScheduler["FalsificationScheduler <br/> (Flags stale hypotheses for dream-cycle re-testing)"]
-    InformationGainEstimator["InformationGainEstimator <br/> (Selects highest-uncertainty probe action in INVESTIGATE)"]
-    CausalRollout["CausalRollout <br/> (Beam-search action planning over the causal graph)"]
-    PolicyDistiller["PolicyDistiller <br/> (Warm priors + few-shot transfer across situation contexts)"]
-    WorkingMemory["WorkingMemory <br/> (Short-term anomaly and counterfactual salience buffer)"]
+    subgraph CORE ["⬡ Core Cognitive Loop"]
+        ModeController["Mode Controller <br/> (DDQN over Cognitive Postures)"]
+        BayesianPerception["BayesianPerception <br/> (Belief Updating & Noise Smoothing)"]
+        EmotionalState["EmotionalState <br/> (Affective Modulation: Calm, Bored, Stressed, Apprehensive, etc.)"]
+        WorldModel["WorldModel <br/> (State-Action Outcome Statistics)"]
+        EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log + Metric Context)"]:::memory
+        CausalReasoning["CausalReasoning <br/> (WHY Layer: Context, Mechanism, Counterfactual, Failure Patterns)"]:::why
+        WorkingMemory["WorkingMemory <br/> (Short-term anomaly and counterfactual salience buffer)"]
+        SelfModel["SelfModel <br/> (Operational History, Milestone Drive, Proximity Anticipation)"]:::self
+        MetaCognition["MetaCognition <br/> (AST-Based Source Code Rewriting)"]
+        ContinuityAdvisor["ContinuityAdvisor <br/> (Cross-Session Hardware Stress: NOMINAL / ADVISORY / MIGRATION)"]:::advisor
+        SomaticConfidenceModel["SomaticConfidenceModel <br/> (Per-situation signal reliability; Spidey Sense events)"]
+    end
+
+    subgraph DREAM ["☽ Dream & Learning"]
+        DreamCycle["DreamCycle <br/> (Consolidation & Paramorphic Learning)"]
+        HypothesisEngine["HypothesisEngine <br/> (Genetic Algorithm over Causal Nodes)"]
+        GeneticOptimizer["GeneticOptimizer <br/> (GA evolution of RL hyperparameters against reward history)"]
+        MosaicCore["MosaicCore <br/> (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
+        LexicalCore["LexicalCore <br/> (Emerging Language: Symbol Weights, Grammar, Open Questions)"]:::lexical
+        WebLearner["WebLearner <br/> (Autonomous Web Exploration; Wikipedia + MDN; LexicalCore seeding)"]:::v4
+        QuestionResolver["QuestionResolver <br/> (Closes open-question → inhibition → lexical graduation loop)"]:::v4
+        FalsificationScheduler["FalsificationScheduler <br/> (Flags stale hypotheses for dream-cycle re-testing)"]
+        AnomalyClusterer["AnomalyClusterer <br/> (Crystallises recurring anomaly patterns into named clusters)"]
+    end
+
+    subgraph V4 ["◈ v4 Expansion"]
+        SituationModel["SituationModel <br/> (Session Geometry: workload fingerprint + situated edge tables)"]:::situation
+        TemporalCausalGraph["TemporalCausalGraph <br/> (Lagged edge discovery)"]:::v4
+        SemanticIndex["SemanticIndex <br/> (20-dim cosine similarity episodic retrieval)"]:::v4
+        DDQNQTable["DDQNQTable <br/> (Online + Target Networks for CMC bootstrapping)"]:::v4
+        RewardVector["RewardVector <br/> (Hierarchical decomposition: immediate / durable / health)"]:::v4
+        CircadianPredictor["CircadianPredictor <br/> (Hour-of-day CPU pattern; governor pre-arm on prediction)"]
+        InformationGainEstimator["InformationGainEstimator <br/> (Selects highest-uncertainty probe action in INVESTIGATE)"]
+        CausalRollout["CausalRollout <br/> (Beam-search action planning over the causal graph)"]
+        PolicyDistiller["PolicyDistiller <br/> (Warm priors + few-shot transfer across situation contexts)"]
+        RiskMatrix["RiskMatrix <br/> (Risk-adjusted action scoring before execution)"]
+    end
 
     ModeController -->|Selects Mode| BayesianPerception
     BayesianPerception -->|Updates Belief| ModeController
@@ -158,11 +167,12 @@ graph TD
     QuestionResolver -->|Inhibition Signals| WorldModel
     QuestionResolver -->|Graduated Statements| LexicalCore
     EpisodicMemory -->|Similarity Retrieval| SemanticIndex
-    SemanticIndex -->|Context Matches| CausalReasoning
+    SemanticIndex -->|Similar Episode Votes| ModeController
     DDQNQTable -->|Target Bootstrap| ModeController
-    RewardVector -->|Decomposed Signal| WorldModel
+    RewardVector -->|Total Reward Signal| ModeController
     WorldModel -->|Lag Attribution| TemporalCausalGraph
     TemporalCausalGraph -->|Delayed Effects| CausalReasoning
+    RiskMatrix -->|Risk-Adjusted Scores| ModeController
     SituationModel -->|Workload Context| ModeController
     SituationModel -->|Situated Edge Lookup| WorldModel
     SituationModel -->|Counterfactual Correction| CausalReasoning
@@ -173,7 +183,7 @@ graph TD
     FalsificationScheduler -->|Stale Hypotheses| HypothesisEngine
     InformationGainEstimator -->|Best Probe Action| ModeController
     CausalRollout -->|Action Plan| ModeController
-    PolicyDistiller -->|Warm Priors| WorldModel
+    PolicyDistiller -->|Warm Priors| ModeController
     WorkingMemory -->|Anomaly Salience| CausalReasoning
     WorkingMemory -->|Recent Counterfactuals| EpisodicMemory
 ```
@@ -221,9 +231,9 @@ All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagg
 
 The process runs in four stages:
 
-- **Symbol Weights**: Every term she uses accumulates a reward-weighted co-occurrence score drawn from her episodic log. Action names, emotion labels, mode names, situation types. The weight is not assigned; it accretes from use. The symbol vocabulary currently spans 812 weighted terms evolved over her operational history.
+- **Symbol Weights**: Every term she uses accumulates a reward-weighted co-occurrence score drawn from her episodic log. Action names, emotion labels, mode names, situation types. The weight is not assigned; it accretes from use. ![Lexicon](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.symbol_count&label=lexicon%20size&color=b39ddb&cacheSeconds=300) weighted terms in the current vocabulary.
 - **Co-occurrence Grammar**: Which symbols appear together in the same episode. Which follow which across consecutive records. No grammatical rules are supplied; the structure is read off statistical patterns in her own history. A bigram grammar engine extends this to pairwise transitions, tracking which symbol pairs are statistically predictive.
-- **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she has never made before, from grammar she observed herself. 166 statements formed to date. 9 open questions currently unresolved.
+- **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she has never made before, from grammar she observed herself. ![Statements](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.statements_formed&label=statements%20formed&color=b39ddb&cacheSeconds=300) original statements formed to date.
 
 ---
 
@@ -300,11 +310,13 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **Post-Milestone Deflation** | A brief affect window after a threshold is crossed where confidence and drive dissipate. |
 | **WebLearner** | ARMINTA's outward-facing information layer that queries Wikipedia and MDN for pages relevant to current hypotheses. |
 | **QuestionResolver** | A subsystem that closes the open-question lifecycle through investigation and lexical graduation. |
+| **RiskMatrix** | A risk-adjusted action scoring layer consulted before execution to avoid high-variance interventions. |
 | **do-calculus** | The mathematical framework for reasoning about causal effects (interventions) vs. mere correlations (observations). |
 | **Confound Poisoning** | A spurious causal relationship inferred when an unobserved third variable causes both the action and the observed metric. |
 | **Paramorphic Learning** | A learning paradigm where an agent transforms its own internal form and knowledge representation while preserving accumulated knowledge. |
 | **MosaicCore** | An expanding world model that probes time, network topology, filesystem activity, external environmental signals, and internal history. |
 | **LexicalCore** | ARMINTA's emergent symbol layer that tracks weighted co-occurrence statistics across her own episodic log. |
+| **SomaticConfidenceModel** | A per-situation tracker of signal reliability weights; generates Spidey Sense events when confidence diverges sharply from prior. |
 | **Poison Registry** | A list of structurally impossible causal edges to prevent learning relationships that cannot exist. |
 | **Kill Ineffective Registry** | A persisted list of process names repeatedly targeted without producing reward improvement. |
 | **Continuity Advisor** | A read-only subsystem monitoring cross-session hardware stress signals. |
@@ -345,7 +357,7 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **Arminta v2.1** | S.M.A.R.T. drive health monitoring. Load-conditional CPU governor escalation. NVMe temperature injected into causal metrics and emotional state. Three-target network probe. |
 | **Arminta v2.1 (WHY)** | Four-layer causal reasoning expansion. Episodic database context column. Hypothesis mechanism annotation. Counterfactual awareness. Failure pattern self-model. |
 | **Arminta v3** | NVMe thermal tuning. `renice_chrome` action. `clean_trash_orphans` action. Milestone proximity drive and post-milestone deflation. Hypothesis deduplication. GA-evolved parameters wired to live systems. |
-| **Arminta v4** | Major architectural expansion. **Temporal Causal Graph**: lag discovery for `(action, metric, lag)` attribution. **Hierarchical Reward Decomposition**: RewardVector with immediate, durable, and health components. **SCM upgrade**: BayesianEdge structures with bimodal detection and credible interval bootstrapping. **DDQN CMC**: online + target network architecture. **WebLearner**: autonomous web exploration. **QuestionResolver**: closes the open-question to lexical graduation loop. **SemanticIndex**: vector retrieval for counterfactual queries. **Situation-Conditional Edges**: per-geometry edge tables. **Apprehensive drive**: eighth emotional state. **InformationGainEstimator**, **CausalRollout**, **PolicyDistiller**, **AnomalyClusterer**, **CircadianPredictor**, **FalsificationScheduler**, and **RiskMatrix** modules. |
+| **Arminta v4** | Major architectural expansion. **Temporal Causal Graph**: lag discovery for `(action, metric, lag)` attribution. **Hierarchical Reward Decomposition**: RewardVector with immediate, durable, and health components. **SCM upgrade**: BayesianEdge structures with bimodal detection and credible interval bootstrapping. **DDQN CMC**: online + target network architecture. **WebLearner**: autonomous web exploration. **QuestionResolver**: closes the open-question to lexical graduation loop. **SemanticIndex**: vector retrieval for counterfactual queries. **Situation-Conditional Edges**: per-geometry edge tables. **Apprehensive drive**: eighth emotional state. **SomaticConfidenceModel**: per-situation signal reliability with Spidey Sense events. **RiskMatrix**: risk-adjusted action scoring. **InformationGainEstimator**, **CausalRollout**, **PolicyDistiller**, **AnomalyClusterer**, **CircadianPredictor**, **FalsificationScheduler** modules. |
 
 ---
 
