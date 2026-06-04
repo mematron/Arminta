@@ -91,44 +91,36 @@ graph TD
     classDef v4 fill:#0d1a1a,stroke:#f38ba8,stroke-width:1px,color:#f38ba8;
     classDef situation fill:#1a1a0d,stroke:#ffb300,stroke-width:1px,color:#ffb300;
 
-    subgraph CORE ["⬡ Core Cognitive Loop"]
-        ModeController["Mode Controller <br/> (DDQN over Cognitive Postures)"]
-        BayesianPerception["BayesianPerception <br/> (Belief Updating & Noise Smoothing)"]
-        EmotionalState["EmotionalState <br/> (Affective Modulation: Calm, Bored, Stressed, Apprehensive, etc.)"]
-        WorldModel["WorldModel <br/> (State-Action Outcome Statistics)"]
-        EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log + Metric Context)"]:::memory
-        CausalReasoning["CausalReasoning <br/> (WHY Layer: Context, Mechanism, Counterfactual, Failure Patterns)"]:::why
-        WorkingMemory["WorkingMemory <br/> (Short-term anomaly and counterfactual salience buffer)"]
-        SelfModel["SelfModel <br/> (Operational History, Milestone Drive, Proximity Anticipation)"]:::self
-        MetaCognition["MetaCognition <br/> (AST-Based Source Code Rewriting)"]
-        ContinuityAdvisor["ContinuityAdvisor <br/> (Cross-Session Hardware Stress: NOMINAL / ADVISORY / MIGRATION)"]:::advisor
-        SomaticConfidenceModel["SomaticConfidenceModel <br/> (Per-situation signal reliability; Spidey Sense events)"]
-    end
-
-    subgraph DREAM ["☽ Dream & Learning"]
-        DreamCycle["DreamCycle <br/> (Consolidation & Paramorphic Learning)"]
-        HypothesisEngine["HypothesisEngine <br/> (Genetic Algorithm over Causal Nodes)"]
-        GeneticOptimizer["GeneticOptimizer <br/> (GA evolution of RL hyperparameters against reward history)"]
-        MosaicCore["MosaicCore <br/> (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
-        LexicalCore["LexicalCore <br/> (Emerging Language: Symbol Weights, Grammar, Open Questions)"]:::lexical
-        WebLearner["WebLearner <br/> (Autonomous Web Exploration; Wikipedia + MDN; LexicalCore seeding)"]:::v4
-        QuestionResolver["QuestionResolver <br/> (Closes open-question → inhibition → lexical graduation loop)"]:::v4
-        FalsificationScheduler["FalsificationScheduler <br/> (Flags stale hypotheses for dream-cycle re-testing)"]
-        AnomalyClusterer["AnomalyClusterer <br/> (Crystallises recurring anomaly patterns into named clusters)"]
-    end
-
-    subgraph V4 ["◈ v4 Expansion"]
-        SituationModel["SituationModel <br/> (Session Geometry: workload fingerprint + situated edge tables)"]:::situation
-        TemporalCausalGraph["TemporalCausalGraph <br/> (Lagged edge discovery)"]:::v4
-        SemanticIndex["SemanticIndex <br/> (20-dim cosine similarity episodic retrieval)"]:::v4
-        DDQNQTable["DDQNQTable <br/> (Online + Target Networks for CMC bootstrapping)"]:::v4
-        RewardVector["RewardVector <br/> (Hierarchical decomposition: immediate / durable / health)"]:::v4
-        CircadianPredictor["CircadianPredictor <br/> (Hour-of-day CPU pattern; governor pre-arm on prediction)"]
-        InformationGainEstimator["InformationGainEstimator <br/> (Selects highest-uncertainty probe action in INVESTIGATE)"]
-        CausalRollout["CausalRollout <br/> (Beam-search action planning over the causal graph)"]
-        PolicyDistiller["PolicyDistiller <br/> (Warm priors + few-shot transfer across situation contexts)"]
-        RiskMatrix["RiskMatrix <br/> (Risk-adjusted action scoring before execution)"]
-    end
+    ModeController["Mode Controller <br/> (DDQN over Cognitive Postures)"]
+    EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log + Metric Context)"]:::memory
+    BayesianPerception["BayesianPerception <br/> (Belief Updating & Noise Smoothing)"]
+    WorldModel["WorldModel <br/> (State-Action Outcome Statistics)"]
+    EmotionalState["EmotionalState <br/> (Affective Modulation: Calm, Bored, Stressed, Apprehensive, etc.)"]
+    HypothesisEngine["HypothesisEngine <br/> (Genetic Algorithm over Causal Nodes)"]
+    MetaCognition["MetaCognition <br/> (AST-Based Source Code Rewriting)"]
+    DreamCycle["DreamCycle <br/> (Consolidation & Paramorphic Learning)"]
+    MosaicCore["MosaicCore <br/> (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
+    LexicalCore["LexicalCore <br/> (Emerging Language: Symbol Weights, Grammar, Open Questions)"]:::lexical
+    CausalReasoning["CausalReasoning <br/> (WHY Layer: Context, Mechanism, Counterfactual, Failure Patterns)"]:::why
+    SelfModel["SelfModel <br/> (Operational History, Milestone Drive, Proximity Anticipation)"]:::self
+    ContinuityAdvisor["ContinuityAdvisor <br/> (Cross-Session Hardware Stress: NOMINAL / ADVISORY / MIGRATION)"]:::advisor
+    WebLearner["WebLearner <br/> (Autonomous Web Exploration; Wikipedia + MDN; LexicalCore seeding)"]:::v4
+    QuestionResolver["QuestionResolver <br/> (Closes open-question → inhibition → lexical graduation loop)"]:::v4
+    SemanticIndex["SemanticIndex <br/> (20-dim cosine similarity episodic retrieval)"]:::v4
+    DDQNQTable["DDQNQTable <br/> (Online + Target Networks for CMC bootstrapping)"]:::v4
+    RewardVector["RewardVector <br/> (Hierarchical decomposition: immediate / durable / health)"]:::v4
+    TemporalCausalGraph["TemporalCausalGraph <br/> (Lagged edge discovery)"]:::v4
+    SomaticConfidenceModel["SomaticConfidenceModel <br/> (Per-situation signal reliability; Spidey Sense events)"]
+    GeneticOptimizer["GeneticOptimizer <br/> (GA evolution of RL hyperparameters against reward history)"]
+    SituationModel["SituationModel <br/> (Session Geometry: workload fingerprint + situated edge tables)"]:::situation
+    CircadianPredictor["CircadianPredictor <br/> (Hour-of-day CPU pattern; governor pre-arm on prediction)"]
+    AnomalyClusterer["AnomalyClusterer <br/> (Crystallises recurring anomaly patterns into named clusters)"]
+    FalsificationScheduler["FalsificationScheduler <br/> (Flags stale hypotheses for dream-cycle re-testing)"]
+    InformationGainEstimator["InformationGainEstimator <br/> (Selects highest-uncertainty probe action in INVESTIGATE)"]
+    CausalRollout["CausalRollout <br/> (Beam-search action planning over the causal graph)"]
+    PolicyDistiller["PolicyDistiller <br/> (Warm priors + few-shot transfer across situation contexts)"]
+    RiskMatrix["RiskMatrix <br/> (Risk-adjusted action scoring before execution)"]
+    WorkingMemory["WorkingMemory <br/> (Short-term anomaly and counterfactual salience buffer)"]
 
     ModeController -->|Selects Mode| BayesianPerception
     BayesianPerception -->|Updates Belief| ModeController
