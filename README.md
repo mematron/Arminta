@@ -37,7 +37,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 ---
 
 **MINUET v99**
-![MINUET live terminal](minuet99a.png)
+![MINUET live terminal](minuet_v99.png)
 
 **ARMINTA v1**
 ![ARMINTA live terminal](arminta_v1.png)
