@@ -52,6 +52,10 @@ ARMINTA deploys as a persistent system service. On first activation:
 **ARMINTA v4**
 ![ARMINTA live terminal](Arminta_v4_05.png)
 
+
+**ARMINTA v5**
+![ARMINTA live terminal](Arminta_v4_05.png)
+
 ---
 
 ## Core Operational Loop
