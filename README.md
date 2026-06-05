@@ -29,7 +29,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 4. The agent's emotional state and decision rationale are accessible through the episodic log.
 
 ### Observing Behavior
-- **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) -> the primary window into the running agent. Sections are ordered from immediate operational status at the top through historical and configuration data lower down.
+- **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) --> the primary window into the running agent. Sections are ordered from immediate operational status at the top through historical and configuration data lower down.
 - **Episodic Database**: Query `arminta_episodic.db` for a complete record of every action, outcome, and self-assessment. Each episode stores a `context` column containing the metric snapshot that triggered the event, enabling counterfactual replay.
 - **State Snapshot**: The current world model and learned parameters are serialized in a versioned pickle file.
 - **System Metrics**: Ground truth comes from standard Linux interfaces including `/proc/meminfo`, PSI, and thermal sensors.
