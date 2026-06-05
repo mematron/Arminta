@@ -249,7 +249,7 @@ The process runs in four stages:
 
 **PriorityShift** is ARMINTA's dynamic foreground/background process manager. When a process loses window focus it is reniced down; when focus is restored so is its priority. This mirrors Windows Process Lasso's PriorityShift concept, implemented natively in Linux without a userspace daemon.
 
-The optimal renice delta is not configured — ARMINTA learns it. `priorityshift_renice` and `priorityshift_restore` are registered as first-class actions in the causal graph. Reward flows from reduced CPU dilution after a renice; if a restore causes a latency spike, the graph penalises the delta and the agent backs off. The RL-learned nice delta starts at +5 and drifts within a bounded range across the run.
+The optimal renice delta is not configured  -> ARMINTA learns it. `priorityshift_renice` and `priorityshift_restore` are registered as first-class actions in the causal graph. Reward flows from reduced CPU dilution after a renice; if a restore causes a latency spike, the graph penalises the delta and the agent backs off. The RL-learned nice delta starts at +5 and drifts within a bounded range across the run.
 
 A zero-overhead event-driven focus watcher thread (via `xdotool behave :any focus`) handles focus tracking. The process table is never touched from the watcher thread — operations are queued and consumed on the main step thread.
 
@@ -259,7 +259,7 @@ A zero-overhead event-driven focus watcher thread (via `xdotool behave :any focu
 
 ARMINTA's v5 action space is no longer static. Three new components work together to discover and vet new interventions at runtime:
 
-**SelfTuner** monitors the observed distribution of each tracked metric and adjusts CPU, memory, dilution, and network warn thresholds toward hardware reality using an exponential moving average. It also scans for gap metrics — high variance with no confident causal action — and routes them to ActionProposer.
+**SelfTuner** monitors the observed distribution of each tracked metric and adjusts CPU, memory, dilution, and network warn thresholds toward hardware reality using an exponential moving average. It also scans for gap metrics -> high variance with no confident causal action — and routes them to ActionProposer.
 
 **ActionProposer** maps gap metrics to a curated library of whitelisted shell command templates. Each template is a fixed command pattern with safe parameter substitution (interface name, PID, nice value). No arbitrary shell execution is possible; the template library is the complete boundary of what can ever be proposed.
 
@@ -308,32 +308,32 @@ The **[Live Agent Dashboard](https://mematron.github.io/arminta-status)** is org
 - **Continuity Advisory** — multi-signal cross-session hardware stress verdict: NOMINAL / ADVISORY / MIGRATION WARRANTED. Third thing you see; impossible to miss if the agent needs attention.
 
 **Live cognitive state**
-- **Emotional State** — dominant affect label and bar grid across all emotion dimensions.
-- **Somatic Confidence** — per-situation signal reliability weights, maturity phase, and Spidey Sense event log.
+- **Emotional State** -> dominant affect label and bar grid across all emotion dimensions.
+- **Somatic Confidence** -> per-situation signal reliability weights, maturity phase, and Spidey Sense event log.
 
 **Scoreboard and recent operations**
-- **Cognitive Metrics** — stat cards for causal edges, dreams, hypotheses, interventions, self-modifications, mosaic hypotheses, age, sessions, novelty hunger, and milestone proximity.
-- **Milestones** — every landmark threshold the agent has crossed.
+- **Cognitive Metrics** -> stat cards for causal edges, dreams, hypotheses, interventions, self-modifications, mosaic hypotheses, age, sessions, novelty hunger, and milestone proximity.
+- **Milestones** -> every landmark threshold the agent has crossed.
 - **Kill Ineffective + Agent Log** — processes flagged as repeat kill targets with no reward improvement, alongside the live color-coded operational log.
-- **Causal Reasoning** — last action taken, why it was chosen, the triggering metric context, and any counterfactual explanation.
-- **Action Discovery Pipeline (v5)** — quarantine queue status: pending candidates and promoted actions with trust scores.
+- **Causal Reasoning** -> last action taken, why it was chosen, the triggering metric context, and any counterfactual explanation.
+- **Action Discovery Pipeline (v5)** -> quarantine queue status: pending candidates and promoted actions with trust scores.
 
 **Causal world model**
-- **Situation Distribution** — fuzzy blend of active situation weights across the last 50 steps, providing context for the causal graph below.
-- **Causal Graph** — four tabs: top interventional edges by effect magnitude, mean reward per action, interactive D3 force-directed graph filterable by situation geometry, and reward timeline colour-coded by situation with a scrubber for history.
-- **System Signals** — four live hardware and OS metrics: hottest single core, WiFi PHY rate, disk IO latency, and earlyoom kill count per step.
-- **Network Health Probes** — rolling dot strip of recent probe results with last-seen targets and latency.
-- **Open Questions / Mosaic Hypotheses** — unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations.
+- **Situation Distribution** -> fuzzy blend of active situation weights across the last 50 steps, providing context for the causal graph below.
+- **Causal Graph** -> four tabs: top interventional edges by effect magnitude, mean reward per action, interactive D3 force-directed graph filterable by situation geometry, and reward timeline colour-coded by situation with a scrubber for history.
+- **System Signals** -> four live hardware and OS metrics: hottest single core, WiFi PHY rate, disk IO latency, and earlyoom kill count per step.
+- **Network Health Probes** -> rolling dot strip of recent probe results with last-seen targets and latency.
+- **Open Questions / Mosaic Hypotheses** -> unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations.
 
 **Learned patterns**
-- **Circadian Pattern + Meta-Cognitive Controller** — average CPU and memory by hour of day learned across the agent's lifetime, alongside the CMC's current Q-values for all cognitive modes, mode distribution donut, and emotion timeline.
-- **PriorityShift State (v5)** — currently throttled background processes, aggregate CPU reduction, and RL-learned nice delta.
+- **Circadian Pattern + Meta-Cognitive Controller** -> average CPU and memory by hour of day learned across the agent's lifetime, alongside the CMC's current Q-values for all cognitive modes, mode distribution donut, and emotion timeline.
+- **PriorityShift State (v5)** -> currently throttled background processes, aggregate CPU reduction, and RL-learned nice delta.
 
 **Configuration**
-- **Governor State** — current and saved CPU governor, override status, idle step counter, and bootstrap phase.
-- **Adaptive Thresholds (v5)** — live values for CPU, memory, dilution, and network warn thresholds as they drift from SelfTuner adaptation.
-- **Web Learner** — ![Pages Read](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_pages_read&label=pages%20read&color=blueviolet&cacheSeconds=300) ![Symbols Absorbed](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_new_symbols&label=symbols%20absorbed&color=purple&cacheSeconds=300) — autonomous web exploration log, fetch and discovery events, lexicon growth.
-- **Drive Health (S.M.A.R.T.)** — NVMe/SSD wear, spare capacity, media errors, and temperature.
+- **Governor State** -> current and saved CPU governor, override status, idle step counter, and bootstrap phase.
+- **Adaptive Thresholds (v5)** -> live values for CPU, memory, dilution, and network warn thresholds as they drift from SelfTuner adaptation.
+- **Web Learner** -> ![Pages Read](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_pages_read&label=pages%20read&color=blueviolet&cacheSeconds=300) ![Symbols Absorbed](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_new_symbols&label=symbols%20absorbed&color=purple&cacheSeconds=300) -> autonomous web exploration log, fetch and discovery events, lexicon growth.
+- **Drive Health (S.M.A.R.T.)** -> NVMe/SSD wear, spare capacity, media errors, and temperature.
 
 The dashboard detects stale data: if the gist payload has not changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions between AGENT ACTIVE, SIGNAL WEAK, and AGENT OFFLINE based on recency of the pushed data.
 
