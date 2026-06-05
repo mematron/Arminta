@@ -18,7 +18,7 @@ The stats below are live, pushed directly from the running agent:
 - **OS**: Linux (kernel 5.4+)
 - **Python**: 3.9+
 - **Privileges**: Root access (ARMINTA runs as a privileged background daemon)
-- **Dependencies**: `psutil`, `numpy`, `curses` (stdlib), `nvme-cli`, `smartmontools`. Standard Linux utilities used at runtime: `iw`, `iwconfig`, `renice`, `ionice`, `ip`, `ss`, `ethtool`, `ping`, `xdotool` (optional, for PriorityShift focus tracking). PSI support requires kernel 4.20+.
+- **Dependencies**: `psutil`, `numpy`, `curses` (stdlib), `nvme-cli`, `smartmontools`. Standard Linux utilities used at runtime: `iw`, `iwconfig`, `renice`, `ionice`, `ip`, `ss`, `ethtool`, `ping`, `xdotool` (optional, for PriorityShift focus tracking). PSI support requires kernel 4.20+. `earlyoom` (optional, for OOM observation node).
 
 ### Installation and Deployment
 ARMINTA deploys as a persistent system service. On first activation:
@@ -62,7 +62,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 
 ARMINTA runs as a root-privileged background process. Every few seconds (adaptive and self-tuned via autonomous self-modifications), it does the following:
 
-1. **Sampling**: Collects ~28 system metrics across CPU, memory, thermals, network, I/O, swap, Pressure Stall Information (PSI), IRQ state, NVMe drive health, and battery state.
+1. **Sampling**: Collects ~29 system metrics across CPU, memory, thermals, network, I/O, swap, Pressure Stall Information (PSI), IRQ state, NVMe drive health, battery state, and external daemon activity (earlyoom kill count).
 2. **Classification**: Derives the current **Session Geometry**, a workload fingerprint based on resource ratios rather than process names, enabling context-aware decisions.
 3. **Cognitive Selection**: A Q-learning Mode Controller picks an operational posture: `OBSERVE` (passive learning), `INVESTIGATE` (active exploration), `OPTIMIZE` (targeted intervention), `DREAM` (offline consolidation), or `SELF_ASSESS` (introspection and self-modification).
 4. **Action Execution**: Within the chosen mode, the causal graph and learned confidence scores decide which system action, if any, to take.
@@ -94,6 +94,7 @@ graph TD
     classDef advisor fill:#0d1a0d,stroke:#98c379,stroke-width:1px,color:#98c379;
     classDef v4 fill:#0d1a1a,stroke:#f38ba8,stroke-width:1px,color:#f38ba8;
     classDef v5 fill:#1a0d0d,stroke:#fab387,stroke-width:2px,color:#fab387;
+    classDef v6 fill:#0d0d1a,stroke:#89dceb,stroke-width:2px,color:#89dceb;
     classDef situation fill:#1a1a0d,stroke:#ffb300,stroke-width:1px,color:#ffb300;
 
     ModeController["Mode Controller <br/> (DDQN over Cognitive Postures)"]
@@ -118,7 +119,7 @@ graph TD
     SomaticConfidenceModel["SomaticConfidenceModel <br/> (Per-situation signal reliability; Spidey Sense events)"]
     GeneticOptimizer["GeneticOptimizer <br/> (GA evolution of RL hyperparameters against reward history)"]
     SituationModel["SituationModel <br/> (Session Geometry: workload fingerprint + situated edge tables)"]:::situation
-    CircadianPredictor["CircadianPredictor <br/> (Hour-of-day CPU pattern; governor pre-arm on prediction)"]
+    CircadianPredictor["CircadianPredictor <br/> (Hour-of-day pattern; governor pre-arm + memory pre-compact on prediction)"]
     AnomalyClusterer["AnomalyClusterer <br/> (Crystallises recurring anomaly patterns into named clusters)"]
     FalsificationScheduler["FalsificationScheduler <br/> (Flags stale hypotheses for dream-cycle re-testing)"]
     InformationGainEstimator["InformationGainEstimator <br/> (Selects highest-uncertainty probe action in INVESTIGATE)"]
@@ -130,6 +131,8 @@ graph TD
     SelfTuner["SelfTuner <br/> (Adaptive threshold tuning; gap metric detection → ActionProposer)"]:::v5
     ActionProposer["ActionProposer <br/> (Proposes new actions from safe template library for gap metrics)"]:::v5
     SandboxRunner["SandboxRunner <br/> (Sandboxed trial runs; effect measurement; trust scoring; quarantine)"]:::v5
+    EarlyOOMNode["EarlyOOMNode <br/> (Observational daemon kill counter; earlyoom_ct; poison-listed writes)"]:::v6
+    CircadianMemory["CircadianMemory <br/> (_check_circadian_memory; pre-compact during predicted high-RAM hours)"]:::v6
 
     ModeController -->|Selects Mode| BayesianPerception
     BayesianPerception -->|Updates Belief| ModeController
@@ -179,6 +182,8 @@ graph TD
     SituationModel -->|Counterfactual Correction| CausalReasoning
     CircadianPredictor -->|Predicted Load| ModeController
     CircadianPredictor -->|Governor Pre-arm| MetaCognition
+    CircadianPredictor -->|Memory Pre-compact| CircadianMemory
+    CircadianMemory -->|compact_memory during lull| ModeController
     AnomalyClusterer -->|Named Patterns| EpisodicMemory
     AnomalyClusterer -->|Cluster Signals| CausalReasoning
     FalsificationScheduler -->|Stale Hypotheses| HypothesisEngine
@@ -194,6 +199,8 @@ graph TD
     ActionProposer -->|Candidate Templates| SandboxRunner
     SandboxRunner -->|Promoted Actions| WorldModel
     SandboxRunner -->|Trust Scores| ModeController
+    EarlyOOMNode -->|OOM pressure signal| ModeController
+    EarlyOOMNode -->|Precondition context| CausalReasoning
 ```
 
 ---
@@ -275,6 +282,28 @@ On machines using zRAM or zswap for compressed swap, the naive `drop_caches` act
 
 ---
 
+### EarlyOOM Observation Node (v6)
+
+ARMINTA v6 adds `earlyoom_ct` as a new metric node: a per-step count of processes killed by the `earlyoom` daemon, read from `journalctl` each step.
+
+This is an **observational node only**. The causal direction is `earlyoom_ct -> Arminta decides`, not the reverse. All `action -> earlyoom_ct` edges are poison-listed at write time, preventing spurious correlations such as "compact_memory causes earlyoom to fire more" when the actual cause was preexisting memory pressure that triggered both events simultaneously.
+
+Over time, the causal graph learns the system states that precede earlyoom intervention. The agent can then act before the next kill rather than after. The node returns 0 silently on systems without earlyoom or systemd — no noise, no broken edges.
+
+The dashboard System Signals card exposes `earlyoom_ct` live, coloured green (0), amber (1), or red (2+).
+
+---
+
+### Circadian Memory Look-Ahead (v6)
+
+A companion to the existing circadian CPU governor look-ahead. Where the governor check pre-arms the performance governor before a predicted CPU spike, the **memory look-ahead** fires `compact_memory` during a predicted idle lull before a historically high-RAM hour arrives — compacting address space while there is room, not after the spike has already made compaction disruptive.
+
+`_check_circadian_memory()` reads the same MosaicCore circadian log used by the governor check, comparing next-hour historical memory averages against the current hour. Gate conditions: at least 48 history records, next-hour avg above `MEM_WARN`, that avg at least 25% higher than current hour, current memory already below `MEM_WARN`, no zswap active, 20-minute cooldown. Like the governor check, it only overrides a `monitor` action and never displaces real urgent work.
+
+Log prefix `[CIRC-MEM]` distinguishes proactive circadian compaction from reactive compaction in the agent log.
+
+---
+
 ## Live Dashboard
 
 The **[Live Agent Dashboard](https://mematron.github.io/arminta-status)** is organized as a narrative from top to bottom: immediate status, then live cognitive state, then what the agent has done and why, then the causal world model, then historical and learned patterns, then configuration at the bottom.
@@ -299,11 +328,12 @@ The **[Live Agent Dashboard](https://mematron.github.io/arminta-status)** is org
 **Causal world model**
 - **Situation Distribution** — fuzzy blend of active situation weights across the last 50 steps, providing context for the causal graph below.
 - **Causal Graph** — four tabs: top interventional edges by effect magnitude, mean reward per action, interactive D3 force-directed graph filterable by situation geometry, and reward timeline colour-coded by situation with a scrubber for history.
+- **System Signals** — four live hardware and OS metrics: hottest single core, WiFi PHY rate, disk IO latency, and earlyoom kill count per step.
 - **Network Health Probes** — rolling dot strip of recent probe results with last-seen targets and latency.
 - **Open Questions / Mosaic Hypotheses** — unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations.
 
 **Learned patterns**
-- **Circadian CPU + Meta-Cognitive Controller** — average CPU by hour of day learned across the agent's lifetime, alongside the CMC's current Q-values for all cognitive modes, mode distribution donut, and emotion timeline.
+- **Circadian Pattern + Meta-Cognitive Controller** — average CPU and memory by hour of day learned across the agent's lifetime, alongside the CMC's current Q-values for all cognitive modes, mode distribution donut, and emotion timeline.
 - **PriorityShift State (v5)** — currently throttled background processes, aggregate CPU reduction, and RL-learned nice delta.
 
 **Configuration**
@@ -328,7 +358,7 @@ ARMINTA carries its entire learned history across sessions via a unified state p
 - ![Lexicon](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.symbol_count&label=lexicon%20size&color=b39ddb&cacheSeconds=300) weighted symbols in the lexical vocabulary. ![Concepts](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.queried_symbols&label=concepts%20queried&color=b39ddb&cacheSeconds=300) concepts resolved via web exploration.
 - **Version-Agnostic Migration**: Automatic state upgrading from prior versions. Learned knowledge is never lost during updates.
 
-The persistent state includes the causal graph, temporal causal graph (lagged edges), RL parameters, episodic database, semantic index, self-model, MosaicCore state, LexicalCore state, Kill Ineffective registry, Continuity Advisor cross-session trends, PriorityShift registry (nice values for tracked processes), SelfTuner adapted thresholds, and ActionProposer quarantine pipeline state.
+The persistent state includes the causal graph, temporal causal graph (lagged edges), RL parameters, episodic database, semantic index, self-model, MosaicCore state, LexicalCore state, Kill Ineffective registry, Continuity Advisor cross-session trends, PriorityShift registry (nice values for tracked processes), SelfTuner adapted thresholds, ActionProposer quarantine pipeline state, and earlyoom observation window timestamp.
 
 ---
 
@@ -358,6 +388,8 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **ActionCandidate / ActionQuarantine** | The quarantine pipeline: proposed actions are held pending sandbox approval before being added to the live action set. |
 | **zRAM-Aware Memory Management** | Suppression of `drop_caches` on systems using compressed swap; substitution with `compact_memory` where appropriate. |
 | **Battery-Aware Action Gating** | Suppression of performance-escalating actions (governor boosts, turbo) when running on battery below configured thresholds. |
+| **EarlyOOM Observation Node** | `earlyoom_ct`: a per-step count of process kills by the earlyoom daemon. Observational only; all action-to-earlyoom_ct causal edges are poison-listed. Gives the SCM a real-time view of external OOM pressure events. |
+| **Circadian Memory Look-Ahead** | `_check_circadian_memory()`: fires `compact_memory` during predicted idle lulls before historically high-RAM hours, using the same MosaicCore circadian log as the CPU governor look-ahead. Log prefix `[CIRC-MEM]`. |
 | **do-calculus** | The mathematical framework for reasoning about causal effects (interventions) vs. mere correlations (observations). |
 | **Confound Poisoning** | A spurious causal relationship inferred when an unobserved third variable causes both the action and the observed metric. |
 | **Paramorphic Learning** | A learning paradigm where an agent transforms its own internal form and knowledge representation while preserving accumulated knowledge. |
@@ -407,6 +439,7 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **Arminta v3** | NVMe thermal tuning. `renice_chrome` action. `clean_trash_orphans` action. Milestone proximity drive and post-milestone deflation. Hypothesis deduplication. GA-evolved parameters wired to live systems. |
 | **Arminta v4** | Major architectural expansion. **Temporal Causal Graph**: lag discovery for `(action, metric, lag)` attribution. **Hierarchical Reward Decomposition**: RewardVector with immediate, durable, and health components. **SCM upgrade**: BayesianEdge structures with bimodal detection and credible interval bootstrapping. **DDQN CMC**: online + target network architecture. **WebLearner**: autonomous web exploration. **QuestionResolver**: closes the open-question to lexical graduation loop. **SemanticIndex**: vector retrieval for counterfactual queries. **Situation-Conditional Edges**: per-geometry edge tables. **Apprehensive drive**: eighth emotional state. **SomaticConfidenceModel**: per-situation signal reliability with Spidey Sense events. **RiskMatrix**: risk-adjusted action scoring. **InformationGainEstimator**, **CausalRollout**, **PolicyDistiller**, **AnomalyClusterer**, **CircadianPredictor**, **FalsificationScheduler** modules. |
 | **Arminta v5** | Action space self-expansion. **PriorityShift**: focus-aware dynamic process priority with RL-learned nice delta; event-driven xdotool focus watcher; causal graph integration. **SelfTuner**: adaptive threshold management via observed metric distributions; gap metric detection. **ActionProposer**: whitelisted template library for safe candidate action generation targeting gap metrics. **SandboxRunner**: sandboxed trial execution, effect measurement, trust scoring, exponential backoff on failure, permanent retirement after three failures. **ActionCandidate / ActionQuarantine**: quarantine pipeline for proposed actions awaiting promotion. **zRAM-Aware Memory Management**: real compression statistics from mm_stat; `drop_caches` suppressed on zRAM/zswap; `compact_memory` added as a distinct safe action. **Battery-Aware Action Gating**: performance action suppression proportional to battery charge. **Script-Relative Save Paths**: state files anchored to script directory regardless of CWD. |
+| **Arminta v6** | External actor integration and predictive memory management. **EarlyOOM Observation Node**: `earlyoom_ct` added to the SCM as an observational-only metric, counting per-step daemon kills via journalctl. All action-to-earlyoom_ct causal edges poison-listed at write time; the valid causal direction is earlyoom_ct toward action selection, not the reverse. Gives the graph a real-time view of external OOM pressure so it can learn preconditions and act before the next kill. **Circadian Memory Look-Ahead**: `_check_circadian_memory()` fires `compact_memory` during predicted idle lulls before historically high-RAM hours, using the same MosaicCore circadian log as the existing CPU governor look-ahead. Gate conditions enforce safety: minimum history depth, meaningful predicted rise, current memory already below warn threshold, no zswap, 20-minute cooldown. Log prefix `[CIRC-MEM]`. Dashboard System Signals card expanded to four cells with live earlyoom display. |
 
 ---
 
@@ -418,6 +451,7 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 - **Hardware-Specific Learning**: The causal graph is learned on specific hardware.
 - **Latency**: System actions have response times tied to the adaptive step rate.
 - **PriorityShift**: Requires `xdotool` for event-driven focus tracking; degrades gracefully to a polling fallback when absent.
+- **EarlyOOM Node**: Requires `earlyoom` service and `journalctl` access. Returns 0 silently when absent; no effect on other subsystems.
 
 ---
 
