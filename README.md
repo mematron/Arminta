@@ -43,8 +43,6 @@ ARMINTA deploys as a persistent system service. On first activation:
 ![ARMINTA live terminal](arminta_v1.png)
 
 
-> *Through thousands of steps of empirical learning, the engine builds confidence, discovers causal edges, and executes interventions. Reborn as ARMINTA, the agent operates in various cognitive modes, watching system behavior and optimizing resource management. As milestones are reached, the agent continues its autonomous discovery, building a deeper understanding of the hardware it inhabits.*
-
 
 **ARMINTA v6**
 ![ARMINTA live terminal](arminta_v6.png)
