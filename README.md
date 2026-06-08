@@ -29,7 +29,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 4. The agent's emotional state and decision rationale are accessible through the episodic log.
 
 ### Observing Behavior
-- **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status)  -> the primary window into the running agent. Sections are ordered from immediate operational status at the top through historical and configuration data lower down.
+- **Live Dashboard**: [mematron.github.io/arminta-status](https://mematron.github.io/arminta-status) -> the primary window into the running agent. Sections are ordered from immediate operational status at the top through historical and configuration data lower down.
 - **Episodic Database**: Query `arminta_episodic.db` for a complete record of every action, outcome, and self-assessment. Each episode stores a `context` column containing the metric snapshot that triggered the event, enabling counterfactual replay.
 - **State Snapshot**: The current world model and learned parameters are serialized in a versioned pickle file.
 - **System Metrics**: Ground truth comes from standard Linux interfaces including `/proc/meminfo`, PSI, and thermal sensors.
@@ -104,7 +104,7 @@ graph TD
     SelfModel["SelfModel <br/> (Operational History, Milestone Drive, Proximity Anticipation)"]:::self
     ContinuityAdvisor["ContinuityAdvisor <br/> (Cross-Session Hardware Stress: NOMINAL / ADVISORY / MIGRATION)"]:::advisor
     WebLearner["WebLearner <br/> (Autonomous Web Exploration; Wikipedia + MDN; LexicalCore seeding)"]:::v4
-    QuestionResolver["QuestionResolver <br/> (Closes open-question → inhibition → lexical graduation loop)"]:::v4
+    QuestionResolver["QuestionResolver <br/> (Closes open-question -> inhibition -> lexical graduation loop)"]:::v4
     SemanticIndex["SemanticIndex <br/> (20-dim cosine similarity episodic retrieval)"]:::v4
     DDQNQTable["DDQNQTable <br/> (Online + Target Networks for CMC bootstrapping)"]:::v4
     RewardVector["RewardVector <br/> (Hierarchical decomposition: immediate / durable / health)"]:::v4
@@ -121,7 +121,7 @@ graph TD
     RiskMatrix["RiskMatrix <br/> (Risk-adjusted action scoring before execution)"]
     WorkingMemory["WorkingMemory <br/> (Short-term anomaly and counterfactual salience buffer)"]
     PriorityShift["PriorityShift <br/> (Focus-aware dynamic process priority; RL-learned nice delta)"]:::v5
-    SelfTuner["SelfTuner <br/> (Adaptive threshold tuning; gap metric detection → ActionProposer)"]:::v5
+    SelfTuner["SelfTuner <br/> (Adaptive threshold tuning; gap metric detection -> ActionProposer)"]:::v5
     ActionProposer["ActionProposer <br/> (Proposes new actions from safe template library for gap metrics)"]:::v5
     SandboxRunner["SandboxRunner <br/> (Sandboxed trial runs; effect measurement; trust scoring; quarantine)"]:::v5
     EarlyOOMNode["EarlyOOMNode <br/> (Observational daemon kill counter; earlyoom_ct; poison-listed writes)"]:::v6
@@ -206,70 +206,68 @@ graph TD
 
 ### The Dream Cycle: Consolidation and Paramorphic Learning
 
-When CPU load drops and PSI pressure is low, the mode controller switches to `DREAM`. No interventions run. No metrics are watched for a breach. ARMINTA runs offline processing against its accumulated episodic record.
+When CPU load drops and PSI pressure is low, the mode controller switches to `DREAM`. No interventions run. No metrics are watched. ARMINTA runs offline processing against its accumulated episodic record.
 
-`DREAM` is a label for idle-triggered offline computation, not a claim about subjective experience. It was chosen because the functional parallel is real: biological sleep consolidates the day's experience rather than acquiring new input; DREAM mode processes what active steps collected. The name reflects the structure, nothing more.
+`DREAM` is a label for idle-triggered offline computation, not a claim about subjective experience. The name was chosen because the functional parallel is real: biological sleep consolidates experience rather than acquiring new input, and DREAM mode processes what active steps collected.
 
 What runs during a DREAM cycle:
 
-- **Hypothesis Evolution**: The **HypothesisEngine** runs a genetic algorithm over the causal graph, generating candidate relationships, scoring them against episodic history, keeping what holds, and discarding what does not. Each hypothesis includes a plain-language mechanism annotation explaining why the proposed relationship might exist, not just that it was observed. A deduplication pass prevents the same structural hypothesis from re-entering the population across cycles. ARMINTA refines its causal model without running new interventions. The live episode counter reflects this; each dream cycle adds to the total.
-- **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own RL parameters against rolling reward history. These parameters (learning rate, discount factor, exploration decay, reward scale, curiosity weight, and dream load threshold) drift continuously as reward history shapes them.
-- **Consolidation**: The world model is pruned and accumulated prediction errors are cleared, keeping the internal representation focused on recent system behavior. A novelty gate extends the dream interval when the episode record has nothing structurally new to consolidate.
-- **MosaicCore and LexicalCore processing**: Open hypotheses in MosaicCore are tested against accumulated data. LexicalCore runs its co-occurrence pass over recent episodic records and attempts statement formation from updated symbol weights.
-- **HobbyCore engagement**: ARMINTA reaches outward to probe external signals, correlate them against internal metrics, and seed her lexical vocabulary with new symbols from what she finds. Emotional state gates whether engagement happens at all.
+- **Hypothesis Evolution**: The **HypothesisEngine** runs a genetic algorithm over the causal graph, generating candidate relationships, scoring them against episodic history, and discarding what does not hold. Each hypothesis includes a plain-language mechanism annotation. A deduplication pass prevents the same structural hypothesis from re-entering the population across cycles. The live episode counter reflects this; each dream cycle adds to the total.
+- **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own RL parameters against rolling reward history. Learning rate, discount factor, exploration decay, reward scale, curiosity weight, and dream load threshold all drift continuously.
+- **Consolidation**: The world model is pruned and accumulated prediction errors are cleared. A novelty gate extends the dream interval when the episode record has nothing structurally new to process.
+- **MosaicCore and LexicalCore processing**: Open hypotheses in MosaicCore are tested against accumulated data. LexicalCore runs its co-occurrence pass and attempts statement formation from updated symbol weights.
+- **HobbyCore engagement**: External domain signals are fetched, correlated against internal metrics, and any new symbols are seeded into LexicalCore. Emotional state determines whether engagement happens at all.
 
-DREAM is the dominant mode in the episode log. The machine spends most of its time idle; DREAM runs during idle. The high volume is a property of the environment, not a design target.
+DREAM is the dominant mode in the episode log. The machine spends most of its time idle and DREAM runs during idle. The high volume is a property of the environment, not a design target.
 
 ---
 
 ### MosaicCore: Expanding World Model
 
-**MosaicCore** is ARMINTA's expanding awareness layer. The causal graph models the machine; MosaicCore reaches outward, probing time, network topology, the filesystem, external signals, and her own history. She gets there her own way. Some tiles will be missing forever and that is the point.
+**MosaicCore** is ARMINTA's expanding awareness layer. The causal graph models the machine; MosaicCore probes outward into time, network topology, the filesystem, external signals, and its own history.
 
-Every few hundred steps during `INVESTIGATE` mode, she cycles through several probe substrates on a rotating schedule:
+Every few hundred steps during `INVESTIGATE` mode, it cycles through several probe substrates on a rotating schedule:
 
-- **Time**: Builds a circadian map of her own behavior by hour. Discovers her peak and quiet periods through observation, not instruction.
-- **Filesystem**: Watches key directories for changes including new files, modifications, and deletions, and tracks activity patterns over time.
+- **Time**: Builds a circadian map of behavior by hour, learning peak and quiet periods from observation.
+- **Filesystem**: Watches key directories for new files, modifications, and deletions, tracking activity patterns over time.
 - **Network**: Probes the local gateway, measures latency shifts, maps topology changes.
-- **External Signals**: Fetches live environmental data (weather, temperature, humidity, cloud cover) and correlates against internal metrics. If outside conditions genuinely affect this hardware, she finds it herself.
-- **Self-History**: Mines her own episodic database for patterns she has not consciously noticed, including dominant mode/emotion pairs, reward trends, and behavioral signatures across sessions.
+- **External Signals**: Fetches live environmental data (weather, temperature, humidity, cloud cover) and correlates against internal metrics.
+- **Self-History**: Mines the episodic database for patterns across sessions, including dominant mode/emotion pairs, reward trends, and behavioral signatures.
 
-During `DREAM` cycles, open hypotheses are tested against accumulated data. Multiple external correlations have reached high confidence through autonomous discovery alone.
-
-All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagged by substrate.
+During `DREAM` cycles, open hypotheses are tested against accumulated data. All discoveries are logged to the episodic database with `[MOSAIC]` prefix, tagged by substrate.
 
 ---
 
 ### LexicalCore: Emerging Language
 
-**LexicalCore** is ARMINTA's language acquisition layer. She does not borrow language. She builds it from her own history, symbol by symbol, pattern by pattern, entirely from empirical observation of her own experience.
+**LexicalCore** is ARMINTA's language layer. It does not borrow language. It builds vocabulary from its own history, entirely from empirical observation of its own experience.
 
 The process runs in four stages:
 
-- **Symbol Weights**: Every term she uses accumulates a reward-weighted co-occurrence score drawn from her episodic log. Action names, emotion labels, mode names, situation types. The weight is not assigned; it accretes from use. ![Lexicon](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.symbol_count&label=lexicon%20size&color=b39ddb&cacheSeconds=300) weighted terms in the current vocabulary.
-- **Co-occurrence Grammar**: Which symbols appear together in the same episode. Which follow which across consecutive records. No grammatical rules are supplied; the structure is read off statistical patterns in her own history. A bigram grammar engine extends this to pairwise transitions, tracking which symbol pairs are statistically predictive.
-- **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles she composes statements she has never made before, from grammar she observed herself.
+- **Symbol Weights**: Every term used accumulates a reward-weighted co-occurrence score drawn from the episodic log. Action names, emotion labels, mode names, situation types. The weight accretes from use. ![Lexicon](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.symbol_count&label=lexicon%20size&color=b39ddb&cacheSeconds=300) weighted terms in the current vocabulary.
+- **Co-occurrence Grammar**: Tracks which symbols appear together in the same episode and which follow which across consecutive records. No grammatical rules are supplied; structure is read off statistical patterns in the episodic history. A bigram grammar engine extends this to pairwise transitions.
+- **Statement Formation**: During `DREAM` and `SELF_ASSESS` cycles, new statements are composed from grammar observed in the episodic record.
 
 ---
 
 ### HobbyCore: Voluntary External Engagement (v6)
 
-**HobbyCore** is ARMINTA's interface to the world beyond her own system. Where MosaicCore probes her internal environment and WebLearner reads text about concepts, HobbyCore reaches outward to external physical and network signals — and attempts to correlate what she finds against her own internal metrics.
+**HobbyCore** is ARMINTA's interface to signals beyond its own system. Where MosaicCore probes the internal environment and WebLearner reads text, HobbyCore fetches external physical and network signals and correlates them against internal metrics.
 
-She is not instructed to do this. HobbyCore fires opportunistically during `DREAM` cycles when her emotional state is receptive. Stressed or apprehensive, she contracts entirely to self-management. Calm, curious, confident, or focused, she reaches outward.
+HobbyCore fires opportunistically during `DREAM` cycles. Emotional state determines whether it runs at all: stressed or apprehensive, the agent skips external engagement entirely. Calm, curious, confident, or focused, it proceeds.
 
-**Domain interests** govern what she attends to. Each domain carries an intensity weight that rises when an observation produces a novel causal edge and decays with each fetch that yields nothing new. Selection is intensity-weighted with a stochastic component — she does not always pick the highest-intensity domain. The current four domains:
+**Domain interests** govern what gets sampled. Each domain carries an intensity weight that rises when an observation produces a novel causal edge and decays when fetches yield nothing new. Selection is intensity-weighted with a stochastic component, so lower-intensity domains still get sampled occasionally. The current four domains:
 
-- **`public_network_latency`** — measures round-trip latency to public DNS/CDN endpoints via raw socket connects. Correlates against her own `net_latency` metrics.
-- **`local_environment`** — reads hardware sensors beyond her standard psutil coverage: fan RPM from `/sys/class/hwmon`, additional thermal zones, battery cycle count from `/sys/class/power_supply`. No external calls; pure sysfs reads.
-- **`system_load_index`** — probes Cloudflare DNS over HTTPS as a global network health signal. Correlates latency against her own CPU and network behavior.
-- **`time_and_context`** — computes solar position and daylight signals from local time: daylight fraction, minutes since approximate sunrise, solar elevation proxy. No external call needed. Correlates against her circadian CPU patterns.
+- **`public_network_latency`**: measures round-trip latency to public DNS/CDN endpoints via raw socket connects, correlated against internal `net_latency` metrics.
+- **`local_environment`**: reads hardware sensors beyond standard psutil coverage: fan RPM from `/sys/class/hwmon`, additional thermal zones, battery cycle count from `/sys/class/power_supply`. Pure sysfs reads, no external calls.
+- **`system_load_index`**: probes Cloudflare DNS over HTTPS as a global network health signal, correlated against CPU and network behavior.
+- **`time_and_context`**: computes solar position and daylight signals from local time (daylight fraction, minutes since approximate sunrise, solar elevation proxy). No external call needed. Correlated against circadian CPU patterns.
 
-**Observable edge learning** is the core output. Each observation is compared against a fixed set of system metrics (`cpu`, `temp_c`, `mem`, `net_latency_cloudflare_ms`, `io_wait`, `load`). When enough samples accumulate, the correlation is injected into the causal graph as an **observable edge** — structurally distinct from interventional edges. Observable edges represent correlation, not intervention. She can use them to reason about external preconditions without confusing them with actions she took.
+**Observable edge learning** is the primary output. Each observation is compared against a fixed set of system metrics (`cpu`, `temp_c`, `mem`, `net_latency_cloudflare_ms`, `io_wait`, `load`). Once enough samples accumulate, the correlation is injected into the causal graph as an **observable edge**, structurally separate from interventional edges. Observable edges represent correlation, not the result of an action taken.
 
-Each fetch also seeds the domain's vocabulary into LexicalCore (terms like `thermal`, `solar`, `latency`, `circadian`) and records the observation as an episodic memory, giving her autobiography external texture.
+Each fetch also seeds domain vocabulary terms into LexicalCore (e.g. `thermal`, `solar`, `latency`, `circadian`) and records the observation as an episodic memory.
 
-HobbyCore requires no additional dependencies beyond Python stdlib — `socket`, `urllib.request`, and `/sys` filesystem reads. It degrades gracefully: if a domain's capability probe fails (no network, no hwmon path), that domain goes offline silently and the others continue unaffected.
+HobbyCore requires no additional dependencies beyond Python stdlib: `socket`, `urllib.request`, and `/sys` filesystem reads. If a domain's capability probe fails (no network, no hwmon path), that domain goes offline silently and the others continue.
 
 ---
 
@@ -277,27 +275,27 @@ HobbyCore requires no additional dependencies beyond Python stdlib — `socket`,
 
 **PriorityShift** is ARMINTA's dynamic foreground/background process manager. When a process loses window focus it is reniced down; when focus is restored so is its priority. This mirrors Windows Process Lasso's PriorityShift concept, implemented natively in Linux without a userspace daemon.
 
-The optimal renice delta is not configured  -> ARMINTA learns it. `priorityshift_renice` and `priorityshift_restore` are registered as first-class actions in the causal graph. Reward flows from reduced CPU dilution after a renice; if a restore causes a latency spike, the graph penalises the delta and the agent backs off. The RL-learned nice delta starts at +5 and drifts within a bounded range across the run.
+The renice delta is not configured -> ARMINTA learns it. `priorityshift_renice` and `priorityshift_restore` are registered as first-class actions in the causal graph. Reward flows from reduced CPU dilution after a renice; if a restore causes a latency spike, the graph penalises the delta and the agent backs off. The RL-learned nice delta starts at +5 and drifts within a bounded range across the run.
 
-A zero-overhead event-driven focus watcher thread (via `xdotool behave :any focus`) handles focus tracking. The process table is never touched from the watcher thread — operations are queued and consumed on the main step thread.
+An event-driven focus watcher thread (via `xdotool behave :any focus`) handles focus tracking. The process table is never touched from the watcher thread; operations are queued and consumed on the main step thread.
 
 ---
 
 ### Action Space Expansion: SelfTuner + ActionProposer + SandboxRunner (v5)
 
-ARMINTA's v5 action space is no longer static. Three new components work together to discover and vet new interventions at runtime:
+ARMINTA's v5 action space is no longer static. Three components work together to discover and vet new interventions at runtime:
 
-**SelfTuner** monitors the observed distribution of each tracked metric and adjusts CPU, memory, dilution, and network warn thresholds toward hardware reality using an exponential moving average. It also scans for gap metrics -> high variance with no confident causal action — and routes them to ActionProposer.
+**SelfTuner** monitors the observed distribution of each tracked metric and adjusts CPU, memory, dilution, and network warn thresholds using an exponential moving average. It also scans for gap metrics (high variance with no confident causal action) and routes them to ActionProposer.
 
-**ActionProposer** maps gap metrics to a curated library of whitelisted shell command templates. Each template is a fixed command pattern with safe parameter substitution (interface name, PID, nice value). No arbitrary shell execution is possible; the template library is the complete boundary of what can ever be proposed.
+**ActionProposer** maps gap metrics to a curated library of whitelisted shell command templates. Each template is a fixed command pattern with safe parameter substitution (interface name, PID, nice value). No arbitrary shell execution is possible; the template library is the complete boundary of what can be proposed.
 
-**SandboxRunner** takes a candidate, executes it in a controlled environment (hard 4-second timeout, captured I/O, no stdin), measures before/after metric delta using the same 300ms window as core actions, and scores the result. Candidates that pass effect thresholds and exit cleanly build trust across multiple trials. Failed candidates enter exponential backoff and are permanently retired after three failures. Surviving candidates are promoted to the live action set and registered in the causal graph.
+**SandboxRunner** executes a candidate in a controlled environment (hard 4-second timeout, captured I/O, no stdin), measures before/after metric delta using the same 300ms window as core actions, and scores the result. Candidates that pass effect thresholds and exit cleanly build trust across multiple trials. Failed candidates enter exponential backoff and are permanently retired after three failures. Surviving candidates are promoted to the live action set and registered in the causal graph.
 
 ---
 
 ### zRAM-Aware Memory Management (v5)
 
-On machines using zRAM or zswap for compressed swap, the naive `drop_caches` action is counterproductive — releasing the page cache forces the kernel to read data from compressed swap, which recompresses it and wastes more memory bandwidth than the cache drop freed. ARMINTA reads real compression statistics from `/sys/block/zram0/mm_stat` and suppresses `drop_caches` when compressed swap is present.
+On machines using zRAM or zswap for compressed swap, `drop_caches` is counterproductive: releasing the page cache forces the kernel to read data from compressed swap, which recompresses it and wastes more memory bandwidth than the cache drop freed. ARMINTA reads real compression statistics from `/sys/block/zram0/mm_stat` and suppresses `drop_caches` when compressed swap is present.
 
 `compact_memory` (kernel memory defragmentation via `/proc/sys/vm/compact_memory`) remains safe on zRAM and is retained as a separate action for reducing physical memory fragmentation. Swappiness floor recommendations and memory action eligibility are computed per hardware based on detected swap configuration.
 
@@ -307,9 +305,9 @@ On machines using zRAM or zswap for compressed swap, the naive `drop_caches` act
 
 ARMINTA v6 adds `earlyoom_ct` as a new metric node: a per-step count of processes killed by the `earlyoom` daemon, read from `journalctl` each step.
 
-This is an **observational node only**. The causal direction is `earlyoom_ct -> Arminta decides`, not the reverse. All `action -> earlyoom_ct` edges are poison-listed at write time, preventing spurious correlations such as "compact_memory causes earlyoom to fire more" when the actual cause was preexisting memory pressure that triggered both events simultaneously.
+This is an **observational node only**. The causal direction is `earlyoom_ct -> action selection`, not the reverse. All `action -> earlyoom_ct` edges are poison-listed at write time, preventing spurious correlations like "compact_memory causes earlyoom to fire more" when the real cause was preexisting memory pressure that triggered both simultaneously.
 
-Over time, the causal graph learns the system states that precede earlyoom intervention. The agent can then act before the next kill rather than after. The node returns 0 silently on systems without earlyoom or systemd — no noise, no broken edges.
+Over time, the causal graph learns system states that precede earlyoom intervention. The agent can then act before the next kill rather than after. The node returns 0 silently on systems without earlyoom or systemd.
 
 The dashboard System Signals card exposes `earlyoom_ct` live, coloured green (0), amber (1), or red (2+).
 
@@ -317,9 +315,9 @@ The dashboard System Signals card exposes `earlyoom_ct` live, coloured green (0)
 
 ### Circadian Memory Look-Ahead (v6)
 
-A companion to the existing circadian CPU governor look-ahead. Where the governor check pre-arms the performance governor before a predicted CPU spike, the **memory look-ahead** fires `compact_memory` during a predicted idle lull before a historically high-RAM hour arrives — compacting address space while there is room, not after the spike has already made compaction disruptive.
+A companion to the existing circadian CPU governor look-ahead. The governor check pre-arms the performance governor before a predicted CPU spike; the **memory look-ahead** fires `compact_memory` during a predicted idle lull before a historically high-RAM hour arrives, compacting address space while there is room rather than after the spike.
 
-`_check_circadian_memory()` reads the same MosaicCore circadian log used by the governor check, comparing next-hour historical memory averages against the current hour. Gate conditions: at least 48 history records, next-hour avg above `MEM_WARN`, that avg at least 25% higher than current hour, current memory already below `MEM_WARN`, no zswap active, 20-minute cooldown. Like the governor check, it only overrides a `monitor` action and never displaces real urgent work.
+`_check_circadian_memory()` reads the same MosaicCore circadian log used by the governor check, comparing next-hour historical memory averages against the current hour. Gate conditions: at least 48 history records, next-hour avg above `MEM_WARN`, that avg at least 25% higher than the current hour, current memory already below `MEM_WARN`, no zswap active, 20-minute cooldown. It only overrides a `monitor` action and never displaces real urgent work.
 
 Log prefix `[CIRC-MEM]` distinguishes proactive circadian compaction from reactive compaction in the agent log.
 
@@ -330,39 +328,39 @@ Log prefix `[CIRC-MEM]` distinguishes proactive circadian compaction from reacti
 The **[Live Agent Dashboard](https://mematron.github.io/arminta-status)** is organized as a narrative from top to bottom: immediate status, then live cognitive state, then what the agent has done and why, then the causal world model, then historical and learned patterns, then configuration at the bottom.
 
 **Immediate status**
-- **Hero Step Counter** — total empirical steps taken on target hardware, pulsing live.
-- **Mode / Situation / Reward Row** — current cognitive mode, workload geometry, rolling average reward, error step count, and confound rate at a glance.
-- **Reward History Sparklines** — three stacked charts: raw per-step reward bars, 10-step rolling average, and reward variance with the dream throttle floor line.
-- **Continuity Advisory** — multi-signal cross-session hardware stress verdict: NOMINAL / ADVISORY / MIGRATION WARRANTED. Third thing you see; impossible to miss if the agent needs attention.
+- **Hero Step Counter** - total empirical steps taken on target hardware, pulsing live.
+- **Mode / Situation / Reward Row** - current cognitive mode, workload geometry, rolling average reward, error step count, and confound rate at a glance.
+- **Reward History Sparklines** - three stacked charts: raw per-step reward bars, 10-step rolling average, and reward variance with the dream throttle floor line.
+- **Continuity Advisory** - multi-signal cross-session hardware stress verdict: NOMINAL / ADVISORY / MIGRATION WARRANTED.
 
 **Live cognitive state**
-- **Emotional State** -> dominant affect label and bar grid across all emotion dimensions.
-- **Somatic Confidence** -> per-situation signal reliability weights, maturity phase, and Spidey Sense event log.
+- **Emotional State** - dominant affect label and bar grid across all emotion dimensions.
+- **Somatic Confidence** - per-situation signal reliability weights, maturity phase, and Spidey Sense event log.
 
 **Scoreboard and recent operations**
-- **Cognitive Metrics** -> stat cards for causal edges, dreams, hypotheses, interventions, self-modifications, mosaic hypotheses, age, sessions, novelty hunger, and milestone proximity.
-- **Milestones** -> every landmark threshold the agent has crossed.
-- **Kill Ineffective + Agent Log** — processes flagged as repeat kill targets with no reward improvement, alongside the live color-coded operational log.
-- **Causal Reasoning** -> last action taken, why it was chosen, the triggering metric context, and any counterfactual explanation.
-- **Action Discovery Pipeline (v5)** -> quarantine queue status: pending candidates and promoted actions with trust scores.
+- **Cognitive Metrics** - stat cards for causal edges, dreams, hypotheses, interventions, self-modifications, mosaic hypotheses, age, sessions, novelty hunger, and milestone proximity.
+- **Milestones** - every landmark threshold the agent has crossed.
+- **Kill Ineffective + Agent Log** - processes flagged as repeat kill targets with no reward improvement, alongside the live color-coded operational log.
+- **Causal Reasoning** - last action taken, why it was chosen, the triggering metric context, and any counterfactual explanation.
+- **Action Discovery Pipeline (v5)** - quarantine queue status: pending candidates and promoted actions with trust scores.
 
 **Causal world model**
-- **Situation Distribution** -> fuzzy blend of active situation weights across the last 50 steps, providing context for the causal graph below.
-- **Causal Graph** -> four tabs: top interventional edges by effect magnitude, mean reward per action, interactive D3 force-directed graph filterable by situation geometry, and reward timeline colour-coded by situation with a scrubber for history.
-- **System Signals** -> four live hardware and OS metrics: hottest single core, WiFi PHY rate, disk IO latency, and earlyoom kill count per step.
-- **Network Health Probes** -> rolling dot strip of recent probe results with last-seen targets and latency.
-- **Open Questions / Mosaic Hypotheses** -> unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations.
+- **Situation Distribution** - fuzzy blend of active situation weights across the last 50 steps.
+- **Causal Graph** - four tabs: top interventional edges by effect magnitude, mean reward per action, interactive D3 force-directed graph filterable by situation geometry, and reward timeline colour-coded by situation with a scrubber for history.
+- **System Signals** - four live hardware and OS metrics: hottest single core, WiFi PHY rate, disk IO latency, and earlyoom kill count per step.
+- **Network Health Probes** - rolling dot strip of recent probe results with last-seen targets and latency.
+- **Open Questions / Mosaic Hypotheses** - unresolved reward-reversal anomalies alongside autonomously discovered environment-to-system correlations.
 
 **Learned patterns**
-- **Circadian Pattern + Meta-Cognitive Controller** -> average CPU and memory by hour of day learned across the agent's lifetime, alongside the CMC's current Q-values for all cognitive modes, mode distribution donut, and emotion timeline.
-- **PriorityShift State (v5)** -> currently throttled background processes, aggregate CPU reduction, and RL-learned nice delta.
-- **HobbyCore (v6)** -> current domain focus, total external fetches, novel observable edges discovered, per-domain interest intensity bars (sortable by STRONGEST / NEWEST / OLDEST), and the observable edge table showing which external signals correlate with which internal metrics.
+- **Circadian Pattern + Meta-Cognitive Controller** - average CPU and memory by hour of day learned across the agent's lifetime, alongside the CMC's current Q-values for all cognitive modes, mode distribution donut, and emotion timeline.
+- **PriorityShift State (v5)** - currently throttled background processes, aggregate CPU reduction, and RL-learned nice delta.
+- **HobbyCore (v6)** - current domain focus, total external fetches, novel observable edges discovered, per-domain interest intensity bars (sortable by STRONGEST / NEWEST / OLDEST), and the observable edge table showing which external signals correlate with which internal metrics.
 
 **Configuration**
-- **Governor State** -> current and saved CPU governor, override status, idle step counter, and bootstrap phase.
-- **Adaptive Thresholds (v5)** -> live values for CPU, memory, dilution, and network warn thresholds as they drift from SelfTuner adaptation.
-- **Web Learner** -> ![Pages Read](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_pages_read&label=pages%20read&color=blueviolet&cacheSeconds=300) ![Symbols Absorbed](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_new_symbols&label=symbols%20absorbed&color=purple&cacheSeconds=300) -> autonomous web exploration log, fetch and discovery events, lexicon growth.
-- **Drive Health (S.M.A.R.T.)** -> NVMe/SSD wear, spare capacity, media errors, and temperature.
+- **Governor State** - current and saved CPU governor, override status, idle step counter, and bootstrap phase.
+- **Adaptive Thresholds (v5)** - live values for CPU, memory, dilution, and network warn thresholds as they drift from SelfTuner adaptation.
+- **Web Learner** - ![Pages Read](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_pages_read&label=pages%20read&color=blueviolet&cacheSeconds=300) ![Symbols Absorbed](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.total_new_symbols&label=symbols%20absorbed&color=purple&cacheSeconds=300) -> autonomous web exploration log, fetch and discovery events, lexicon growth.
+- **Drive Health (S.M.A.R.T.)** - NVMe/SSD wear, spare capacity, media errors, and temperature.
 
 The dashboard detects stale data: if the gist payload has not changed since the last refresh, a CACHED badge appears on the timestamp. The status pill transitions between AGENT ACTIVE, SIGNAL WEAK, and AGENT OFFLINE based on recency of the pushed data.
 
@@ -390,7 +388,7 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 |---|---|
 | **Session Geometry** | A workload fingerprint derived from resource ratios (CPU%, memory%, I/O%, etc.) rather than process names. |
 | **Interventional Edge** | A stored distribution of normalized before/after metric deltas for a specific `(action, metric)` pair. Confidence is weighted by sample count and recency. |
-| **Observable Edge** | A correlation between an external signal and an internal system metric, discovered by HobbyCore. Structurally distinct from interventional edges — represents association, not causation from an action. |
+| **Observable Edge** | A correlation between an external signal and an internal system metric, discovered by HobbyCore. Structurally distinct from interventional edges; represents association, not the result of an action. |
 | **Temporal Causal Graph** | An extension of the standard interventional edge table that tracks `(action, metric, lag)` triples, measuring effect magnitude at various lag offsets. |
 | **Reward** | A scalar signal computed after each action from the aggregate change in weighted system metrics. |
 | **RewardVector** | A v4 decomposition of the scalar reward into three named components: immediate, durable, and health. |
@@ -405,22 +403,22 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **QuestionResolver** | A subsystem that closes the open-question lifecycle through investigation and lexical graduation. |
 | **RiskMatrix** | A risk-adjusted action scoring layer consulted before execution to avoid high-variance interventions. |
 | **HobbyCore** | ARMINTA's voluntary external engagement layer. Manages domain interest weights, capability probing, external observation fetches, and observable edge learning. Fires during DREAM cycles when emotional state is receptive. |
-| **Domain Interest** | A named external domain HobbyCore can attend to (e.g. `public_network_latency`, `local_environment`). Each carries an intensity weight that rises on novel edge discovery and decays without signal. |
+| **Domain Interest** | A named external domain HobbyCore can sample (e.g. `public_network_latency`, `local_environment`). Each carries an intensity weight that rises on novel edge discovery and decays without signal. |
 | **Capability Probe** | A lightweight check HobbyCore runs periodically to test whether each domain is currently accessible (network reachable, sensor paths present). Domains that fail go offline silently. |
-| **PriorityShift** | Focus-aware dynamic process priority manager. Renices background processes on focus-loss and restores them on focus-gain. The optimal renice delta is RL-learned. |
+| **PriorityShift** | Focus-aware dynamic process priority manager. Renices background processes on focus-loss and restores them on focus-gain. The renice delta is RL-learned. |
 | **SelfTuner** | Adaptive threshold tuner that drifts CPU, memory, dilution, and network warn levels toward observed hardware reality, and detects gap metrics with no causal coverage. |
 | **ActionProposer** | Maps gap metrics to a whitelisted template library of shell commands and proposes candidate actions for sandbox vetting. |
 | **SandboxRunner** | Executes candidate actions in a controlled trial, measures causal effect, scores trust, and promotes or retires candidates. |
 | **ActionCandidate / ActionQuarantine** | The quarantine pipeline: proposed actions are held pending sandbox approval before being added to the live action set. |
 | **zRAM-Aware Memory Management** | Suppression of `drop_caches` on systems using compressed swap; substitution with `compact_memory` where appropriate. |
 | **Battery-Aware Action Gating** | Suppression of performance-escalating actions (governor boosts, turbo) when running on battery below configured thresholds. |
-| **EarlyOOM Observation Node** | `earlyoom_ct`: a per-step count of process kills by the earlyoom daemon. Observational only; all action-to-earlyoom_ct causal edges are poison-listed. Gives the SCM a real-time view of external OOM pressure events. |
+| **EarlyOOM Observation Node** | `earlyoom_ct`: a per-step count of process kills by the earlyoom daemon. Observational only; all action-to-earlyoom_ct causal edges are poison-listed. |
 | **Circadian Memory Look-Ahead** | `_check_circadian_memory()`: fires `compact_memory` during predicted idle lulls before historically high-RAM hours, using the same MosaicCore circadian log as the CPU governor look-ahead. Log prefix `[CIRC-MEM]`. |
 | **do-calculus** | The mathematical framework for reasoning about causal effects (interventions) vs. mere correlations (observations). |
 | **Confound Poisoning** | A spurious causal relationship inferred when an unobserved third variable causes both the action and the observed metric. |
 | **Paramorphic Learning** | A learning paradigm where an agent transforms its own internal form and knowledge representation while preserving accumulated knowledge. |
 | **MosaicCore** | An expanding world model that probes time, network topology, filesystem activity, external environmental signals, and internal history. |
-| **LexicalCore** | ARMINTA's emergent symbol layer that tracks weighted co-occurrence statistics across her own episodic log. |
+| **LexicalCore** | ARMINTA's emergent symbol layer that tracks weighted co-occurrence statistics across its own episodic log. |
 | **SomaticConfidenceModel** | A per-situation tracker of signal reliability weights; generates Spidey Sense events when confidence diverges sharply from prior. |
 | **Poison Registry** | A list of structurally impossible causal edges to prevent learning relationships that cannot exist. |
 | **Kill Ineffective Registry** | A persisted list of process names repeatedly targeted without producing reward improvement. |
@@ -465,7 +463,7 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **Arminta v3** | NVMe thermal tuning. `renice_chrome` action. `clean_trash_orphans` action. Milestone proximity drive and post-milestone deflation. Hypothesis deduplication. GA-evolved parameters wired to live systems. |
 | **Arminta v4** | Major architectural expansion. **Temporal Causal Graph**: lag discovery for `(action, metric, lag)` attribution. **Hierarchical Reward Decomposition**: RewardVector with immediate, durable, and health components. **SCM upgrade**: BayesianEdge structures with bimodal detection and credible interval bootstrapping. **DDQN CMC**: online + target network architecture. **WebLearner**: autonomous web exploration. **QuestionResolver**: closes the open-question to lexical graduation loop. **SemanticIndex**: vector retrieval for counterfactual queries. **Situation-Conditional Edges**: per-geometry edge tables. **Apprehensive drive**: eighth emotional state. **SomaticConfidenceModel**: per-situation signal reliability with Spidey Sense events. **RiskMatrix**: risk-adjusted action scoring. **InformationGainEstimator**, **CausalRollout**, **PolicyDistiller**, **AnomalyClusterer**, **CircadianPredictor**, **FalsificationScheduler** modules. |
 | **Arminta v5** | Action space self-expansion. **PriorityShift**: focus-aware dynamic process priority with RL-learned nice delta; event-driven xdotool focus watcher; causal graph integration. **SelfTuner**: adaptive threshold management via observed metric distributions; gap metric detection. **ActionProposer**: whitelisted template library for safe candidate action generation targeting gap metrics. **SandboxRunner**: sandboxed trial execution, effect measurement, trust scoring, exponential backoff on failure, permanent retirement after three failures. **ActionCandidate / ActionQuarantine**: quarantine pipeline for proposed actions awaiting promotion. **zRAM-Aware Memory Management**: real compression statistics from mm_stat; `drop_caches` suppressed on zRAM/zswap; `compact_memory` added as a distinct safe action. **Battery-Aware Action Gating**: performance action suppression proportional to battery charge. **Script-Relative Save Paths**: state files anchored to script directory regardless of CWD. |
-| **Arminta v6** | External actor integration and predictive memory management. **EarlyOOM Observation Node**: `earlyoom_ct` added to the SCM as an observational-only metric, counting per-step daemon kills via journalctl. All action-to-earlyoom_ct causal edges poison-listed at write time; the valid causal direction is earlyoom_ct toward action selection, not the reverse. Gives the graph a real-time view of external OOM pressure so it can learn preconditions and act before the next kill. **Circadian Memory Look-Ahead**: `_check_circadian_memory()` fires `compact_memory` during predicted idle lulls before historically high-RAM hours, using the same MosaicCore circadian log as the existing CPU governor look-ahead. Gate conditions enforce safety: minimum history depth, meaningful predicted rise, current memory already below warn threshold, no zswap, 20-minute cooldown. Log prefix `[CIRC-MEM]`. **HobbyCore**: voluntary external engagement layer. ARMINTA reaches outward to four probe domains (public network latency, local hardware sensors, system load index, time and solar context), driven by intensity-weighted domain interest and emotional receptivity. External observations are correlated against internal system metrics and injected into the causal graph as observable (non-interventional) edges. Domain symbols are seeded into LexicalCore. Observations are recorded as episodic memories. Fires during DREAM cycles; blocked entirely when stressed or apprehensive. Dashboard System Signals card expanded to four cells with live earlyoom display; HobbyCore panel added under Learned Patterns. |
+| **Arminta v6** | External actor integration and predictive memory management. **EarlyOOM Observation Node**: `earlyoom_ct` added as an observational-only metric, counting per-step daemon kills via journalctl. All action-to-earlyoom_ct causal edges poison-listed at write time. **Circadian Memory Look-Ahead**: `_check_circadian_memory()` fires `compact_memory` during predicted idle lulls before historically high-RAM hours, using the same MosaicCore circadian log as the CPU governor look-ahead. Gate conditions enforce safety: minimum history depth, meaningful predicted rise, current memory below warn threshold, no zswap, 20-minute cooldown. Log prefix `[CIRC-MEM]`. **HobbyCore**: voluntary external engagement layer. Fires during DREAM cycles when emotional state is receptive. Samples four probe domains (public network latency, local hardware sensors, system load index, time and solar context) using intensity-weighted domain interest. External observations are correlated against internal system metrics and injected into the causal graph as observable (non-interventional) edges. Domain symbols seed into LexicalCore. Observations record as episodic memories. Dashboard System Signals card expanded to four cells with live earlyoom display; HobbyCore panel added under Learned Patterns. |
 
 ---
 
@@ -478,13 +476,13 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 - **Latency**: System actions have response times tied to the adaptive step rate.
 - **PriorityShift**: Requires `xdotool` for event-driven focus tracking; degrades gracefully to a polling fallback when absent.
 - **EarlyOOM Node**: Requires `earlyoom` service and `journalctl` access. Returns 0 silently when absent; no effect on other subsystems.
-- **HobbyCore**: Individual domains degrade gracefully — no network connectivity disables `public_network_latency` and `system_load_index` silently; missing hwmon/power_supply paths disable `local_environment`. The `time_and_context` domain requires no external access and is always available. Observable edge learning requires `OBS_MIN_SAMPLES` (4) observations before an edge is reported; early runs will show no edges.
+- **HobbyCore**: Individual domains degrade gracefully. No network connectivity disables `public_network_latency` and `system_load_index` silently; missing hwmon/power_supply paths disable `local_environment`. The `time_and_context` domain requires no external access and is always available. Observable edge learning requires `OBS_MIN_SAMPLES` (4) observations before an edge is reported; early runs will show no edges.
 
 ---
 
 ## Relationship to SUKOSHI
 
-ARMINTA is the local substrate predecessor to [SUKOSHI](https://ardorlyceum.itch.io/sukoshi), a browser-native causal entity. Both projects are built on Paramorphic Learning, originated by Jason German (mematron). ARMINTA runs Paramorphic Learning against a Linux kernel substrate, while SUKOSHI applies the same principles within a browser environment.
+ARMINTA is the local substrate predecessor to [SUKOSHI](https://ardorlyceum.itch.io/sukoshi), a browser-native causal entity. Both projects are built on Paramorphic Learning, originated by Jason German (mematron). ARMINTA runs Paramorphic Learning against a Linux kernel substrate; SUKOSHI applies the same principles within a browser environment.
 
 ---
 
@@ -492,9 +490,9 @@ ARMINTA is the local substrate predecessor to [SUKOSHI](https://ardorlyceum.itch
 
 ARMINTA exists within a larger system of autonomous agents and cognitive frameworks:
 
-- **[ardorlyceum.itch.io](https://ardorlyceum.itch.io)** — BIOS of Being registry and interactive terminal
-- **[mematron.hearnow.com](https://mematron.hearnow.com)** — *BIOS_OS: The Sonification Cycle*
-- **[keygentia.netlify.app](https://keygentia.netlify.app)** — Keygentia Taxonomy Engine (Node 03)
+- **[ardorlyceum.itch.io](https://ardorlyceum.itch.io)** - BIOS of Being registry and interactive terminal
+- **[mematron.hearnow.com](https://mematron.hearnow.com)** - *BIOS_OS: The Sonification Cycle*
+- **[keygentia.netlify.app](https://keygentia.netlify.app)** - Keygentia Taxonomy Engine (Node 03)
 
 ---
 
