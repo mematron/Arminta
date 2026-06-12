@@ -6,7 +6,7 @@ ARMINTA is a Python-based autonomous agent running continuously on a Linux machi
 
 The stats below are live, pushed directly from the running agent:
 
-![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **<a href="https://mematron.github.io/arminta-status">Live Agent Dashboard</a>**  -> real-time cognitive state, emotion, causal graph, and telemetry pushed directly from the running agent.
+![Live Steps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.step_count&label=live%20steps&color=brightgreen&suffix=%2B&cacheSeconds=300) ![Episodes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.episodes&label=episodes&color=blue&cacheSeconds=300) **<a href="https://mematron.github.io/arminta-status">Live Agent Dashboard</a>** -> real-time cognitive state, emotion, causal graph, and telemetry pushed directly from the running agent.
 
 > **Source Status**: Closed source. This repository documents the architecture, design philosophy, and version lineage of the ARMINTA engine.
 
@@ -18,7 +18,7 @@ The stats below are live, pushed directly from the running agent:
 - **OS**: Linux (kernel 5.4+)
 - **Python**: 3.9+
 - **Privileges**: Root access (ARMINTA runs as a privileged background daemon)
-- **Dependencies**: `psutil`, `numpy`, `curses` (stdlib), `nvme-cli`, `smartmontools`. Standard Linux utilities used at runtime: `iw`, `iwconfig`, `renice`, `ionice`, `ip`, `ss`, `ethtool`, `ping`, `xdotool` (optional, for PriorityShift focus tracking). PSI support requires kernel 4.20+. `earlyoom` (optional, for OOM observation node).
+- **Dependencies**: `psutil`, `numpy`, `curses` (stdlib), `nvme-cli`, `smartmontools`. Standard Linux utilities used at runtime: `iw`, `iwconfig`, `renice`, `ionice`, `taskset`, `ip`, `ss`, `ethtool`, `ping`, `xdotool` (optional, for PriorityShift focus tracking). PSI support requires kernel 4.20+. `earlyoom` (optional, for OOM observation node).
 
 ### Installation and Deployment
 ARMINTA deploys as a persistent system service. On first activation:
@@ -41,8 +41,6 @@ ARMINTA deploys as a persistent system service. On first activation:
 
 **ARMINTA v1**
 ![ARMINTA live terminal](arminta_v1.png)
-
-
 
 **ARMINTA v6**
 ![ARMINTA live terminal](arminta_v6.png)
@@ -86,45 +84,47 @@ graph TD
     classDef v4 fill:#0d1a1a,stroke:#f38ba8,stroke-width:1px,color:#f38ba8;
     classDef v5 fill:#1a0d0d,stroke:#fab387,stroke-width:2px,color:#fab387;
     classDef v6 fill:#0d0d1a,stroke:#89dceb,stroke-width:2px,color:#89dceb;
+    classDef v7 fill:#0d1a0d,stroke:#39ff14,stroke-width:2px,color:#39ff14;
     classDef situation fill:#1a1a0d,stroke:#ffb300,stroke-width:1px,color:#ffb300;
 
-    ModeController["Mode Controller <br/> (DDQN over Cognitive Postures)"]
-    EpisodicMemory["EpisodicMemory <br/> (SQLite Episode Log + Metric Context)"]:::memory
-    BayesianPerception["BayesianPerception <br/> (Belief Updating & Noise Smoothing)"]
-    WorldModel["WorldModel <br/> (State-Action Outcome Statistics)"]
-    EmotionalState["EmotionalState <br/> (Affective Modulation: Calm, Bored, Stressed, Apprehensive, etc.)"]
-    HypothesisEngine["HypothesisEngine <br/> (Genetic Algorithm over Causal Nodes)"]
-    MetaCognition["MetaCognition <br/> (AST-Based Source Code Rewriting)"]
-    DreamCycle["DreamCycle <br/> (Consolidation & Paramorphic Learning)"]
-    MosaicCore["MosaicCore <br/> (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
-    LexicalCore["LexicalCore <br/> (Emerging Language: Symbol Weights, Grammar, Open Questions)"]:::lexical
-    CausalReasoning["CausalReasoning <br/> (WHY Layer: Context, Mechanism, Counterfactual, Failure Patterns)"]:::why
-    SelfModel["SelfModel <br/> (Operational History, Milestone Drive, Proximity Anticipation)"]:::self
-    ContinuityAdvisor["ContinuityAdvisor <br/> (Cross-Session Hardware Stress: NOMINAL / ADVISORY / MIGRATION)"]:::advisor
-    WebLearner["WebLearner <br/> (Autonomous Web Exploration; Wikipedia + MDN; LexicalCore seeding)"]:::v4
-    QuestionResolver["QuestionResolver <br/> (Closes open-question -> inhibition -> lexical graduation loop)"]:::v4
-    SemanticIndex["SemanticIndex <br/> (20-dim cosine similarity episodic retrieval)"]:::v4
-    DDQNQTable["DDQNQTable <br/> (Online + Target Networks for CMC bootstrapping)"]:::v4
-    RewardVector["RewardVector <br/> (Hierarchical decomposition: immediate / durable / health)"]:::v4
-    TemporalCausalGraph["TemporalCausalGraph <br/> (Lagged edge discovery)"]:::v4
-    SomaticConfidenceModel["SomaticConfidenceModel <br/> (Per-situation signal reliability; Spidey Sense events)"]
-    GeneticOptimizer["GeneticOptimizer <br/> (GA evolution of RL hyperparameters against reward history)"]
-    SituationModel["SituationModel <br/> (Session Geometry: workload fingerprint + situated edge tables)"]:::situation
-    CircadianPredictor["CircadianPredictor <br/> (Hour-of-day pattern; governor pre-arm + memory pre-compact on prediction)"]
-    AnomalyClusterer["AnomalyClusterer <br/> (Crystallises recurring anomaly patterns into named clusters)"]
-    FalsificationScheduler["FalsificationScheduler <br/> (Flags stale hypotheses for dream-cycle re-testing)"]
-    InformationGainEstimator["InformationGainEstimator <br/> (Selects highest-uncertainty probe action in INVESTIGATE)"]
-    CausalRollout["CausalRollout <br/> (Beam-search action planning over the causal graph)"]
-    PolicyDistiller["PolicyDistiller <br/> (Warm priors + few-shot transfer across situation contexts)"]
-    RiskMatrix["RiskMatrix <br/> (Risk-adjusted action scoring before execution)"]
-    WorkingMemory["WorkingMemory <br/> (Short-term anomaly and counterfactual salience buffer)"]
-    PriorityShift["PriorityShift <br/> (Focus-aware dynamic process priority; RL-learned nice delta)"]:::v5
-    SelfTuner["SelfTuner <br/> (Adaptive threshold tuning; gap metric detection -> ActionProposer)"]:::v5
-    ActionProposer["ActionProposer <br/> (Proposes new actions from safe template library for gap metrics)"]:::v5
-    SandboxRunner["SandboxRunner <br/> (Sandboxed trial runs; effect measurement; trust scoring; quarantine)"]:::v5
-    EarlyOOMNode["EarlyOOMNode <br/> (Observational daemon kill counter; earlyoom_ct; poison-listed writes)"]:::v6
-    CircadianMemory["CircadianMemory <br/> (_check_circadian_memory; pre-compact during predicted high-RAM hours)"]:::v6
-    HobbyCore["HobbyCore <br/> (Voluntary external engagement; domain interest weights; observable edge learning)"]:::v6
+    ModeController["Mode Controller (DDQN over Cognitive Postures)"]
+    EpisodicMemory["EpisodicMemory (SQLite Episode Log + Metric Context)"]:::memory
+    BayesianPerception["BayesianPerception (Belief Updating & Noise Smoothing)"]
+    WorldModel["WorldModel (State-Action Outcome Statistics)"]
+    EmotionalState["EmotionalState (Affective Modulation: Calm, Bored, Stressed, Apprehensive, etc.)"]
+    HypothesisEngine["HypothesisEngine (Genetic Algorithm over Causal Nodes)"]
+    MetaCognition["MetaCognition (AST-Based Source Code Rewriting)"]
+    DreamCycle["DreamCycle (Consolidation & Paramorphic Learning)"]
+    MosaicCore["MosaicCore (Expanding World Model: Time, Network, External, Self-History)"]:::mosaic
+    LexicalCore["LexicalCore (Emerging Language: Symbol Weights, Grammar, Open Questions)"]:::lexical
+    CausalReasoning["CausalReasoning (WHY Layer: Context, Mechanism, Counterfactual, Failure Patterns)"]:::why
+    SelfModel["SelfModel (Operational History, Milestone Drive, Proximity Anticipation)"]:::self
+    ContinuityAdvisor["ContinuityAdvisor (Cross-Session Hardware Stress: NOMINAL / ADVISORY / MIGRATION)"]:::advisor
+    WebLearner["WebLearner (Autonomous Web Exploration; Wikipedia + MDN; LexicalCore seeding)"]:::v4
+    QuestionResolver["QuestionResolver (Closes open-question -> inhibition -> lexical graduation loop)"]:::v4
+    SemanticIndex["SemanticIndex (20-dim cosine similarity episodic retrieval)"]:::v4
+    DDQNQTable["DDQNQTable (Online + Target Networks for CMC bootstrapping)"]:::v4
+    RewardVector["RewardVector (Hierarchical decomposition: immediate / durable / health)"]:::v4
+    TemporalCausalGraph["TemporalCausalGraph (Lagged edge discovery)"]:::v4
+    SomaticConfidenceModel["SomaticConfidenceModel (Per-situation signal reliability; Spidey Sense events)"]
+    GeneticOptimizer["GeneticOptimizer (GA evolution of RL hyperparameters against reward history)"]
+    SituationModel["SituationModel (Session Geometry: workload fingerprint + situated edge tables)"]:::situation
+    CircadianPredictor["CircadianPredictor (Hour-of-day pattern; governor pre-arm + memory pre-compact on prediction)"]
+    AnomalyClusterer["AnomalyClusterer (Crystallises recurring anomaly patterns into named clusters)"]
+    FalsificationScheduler["FalsificationScheduler (Flags stale hypotheses for dream-cycle re-testing)"]
+    InformationGainEstimator["InformationGainEstimator (Selects highest-uncertainty probe action in INVESTIGATE)"]
+    CausalRollout["CausalRollout (Beam-search action planning over the causal graph)"]
+    PolicyDistiller["PolicyDistiller (Warm priors + few-shot transfer across situation contexts)"]
+    RiskMatrix["RiskMatrix (Risk-adjusted action scoring before execution)"]
+    WorkingMemory["WorkingMemory (Short-term anomaly and counterfactual salience buffer)"]
+    PriorityShift["PriorityShift (Focus-aware dynamic process priority; RL-learned nice delta)"]:::v5
+    SelfTuner["SelfTuner (Adaptive threshold tuning; gap metric detection -> ActionProposer)"]:::v5
+    ActionProposer["ActionProposer (Proposes new actions from safe template library for gap metrics)"]:::v5
+    SandboxRunner["SandboxRunner (Sandboxed trial runs; effect measurement; trust scoring; quarantine)"]:::v5
+    EarlyOOMNode["EarlyOOMNode (Observational daemon kill counter; earlyoom_ct; poison-listed writes)"]:::v6
+    CircadianMemory["CircadianMemory (_check_circadian_memory; pre-compact during predicted high-RAM hours)"]:::v6
+    HobbyCore["HobbyCore (Voluntary external engagement; domain interest weights; observable edge learning)"]:::v6
+    WishPipeline["WishPipeline (W1-W4: gap detection, procurement, shadow staging, evolutionary grading)"]:::v7
 
     ModeController -->|Selects Mode| BayesianPerception
     BayesianPerception -->|Updates Belief| ModeController
@@ -198,6 +198,10 @@ graph TD
     HobbyCore -->|Observable edges| WorldModel
     HobbyCore -->|Seeds symbols| LexicalCore
     HobbyCore -->|Hobby episodes| EpisodicMemory
+    ModeController -->|SELF_ASSESS| WishPipeline
+    WishPipeline -->|WIN bias| ModeController
+    WishPipeline -->|Deployed actions| WorldModel
+    WishPipeline -->|Symbol seeding| LexicalCore
 ```
 
 ---
@@ -210,8 +214,8 @@ When CPU load drops and PSI pressure is low, the mode controller switches to `DR
 
 What runs during a DREAM cycle:
 
-- **Hypothesis Evolution**: The **HypothesisEngine** runs a genetic algorithm over the causal graph, generating candidate relationships, scoring them against episodic history, and discarding what does not hold. Each hypothesis includes a plain-language mechanism annotation. A deduplication pass prevents the same structural hypothesis from re-entering the population across cycles. The live episode counter reflects this; each dream cycle adds to the total.
-- **Genetic Hyperparameter Optimization**: The **GeneticOptimizer** evolves ARMINTA's own RL parameters against rolling reward history. Learning rate, discount factor, exploration decay, reward scale, curiosity weight, and dream load threshold all drift continuously.
+- **Hypothesis Evolution**: The HypothesisEngine runs a genetic algorithm over the causal graph, generating candidate relationships, scoring them against episodic history, and discarding what does not hold. Each hypothesis includes a plain-language mechanism annotation. A deduplication pass prevents the same structural hypothesis from re-entering the population across cycles.
+- **Genetic Hyperparameter Optimization**: The GeneticOptimizer evolves ARMINTA's own RL parameters against rolling reward history. Learning rate, discount factor, exploration decay, reward scale, curiosity weight, and dream load threshold all drift continuously.
 - **Consolidation**: The world model is pruned and accumulated prediction errors are cleared. A novelty gate extends the dream interval when the episode record has nothing structurally new to process.
 - **MosaicCore and LexicalCore processing**: Open hypotheses in MosaicCore are tested against accumulated data. LexicalCore runs its co-occurrence pass and attempts statement formation from updated symbol weights.
 - **HobbyCore engagement**: External domain signals are fetched, correlated against internal metrics, and any new symbols are seeded into LexicalCore. Emotional state determines whether engagement happens at all.
@@ -248,6 +252,21 @@ The process runs in four stages:
 
 ---
 
+### Wish Pipeline: Self-Directed Capability Development (v7)
+
+**WishPipeline** is ARMINTA's mechanism for identifying her own capability gaps and proposing ways to fill them. The full cycle runs during `SELF_ASSESS` mode across four phases:
+
+- **W1 - Wish Generation**: Scans the causal graph for persistent dead zones (actions with sustained negative mean reward and no improving trend) and situation gaps (situations the classifier fires on confidently but where no dedicated policy action exists). Generates structured wish records with evidence, gated by a 3000-step cooldown.
+- **W2 - Shopping List**: For each pending wish, searches for procurement candidates in priority order: existing system utilities on PATH (`ionice`, `taskset`, `tc`, `numactl`...), action composition from the existing registry, then purpose-built implementations as a last resort.
+- **W3 - Staging Ring**: Runs each candidate in shadow mode for ~2000 steps (~83 minutes). The candidate observes live metrics, predicts decisions, and never executes. Three disqualification gates: out-of-registry action proposal, resource threshold breach, fire rate outside acceptable bounds.
+- **W4 - Evolutionary Grading**: Evaluates passed shadows over 5000 steps. WIN = target metric improves >10% sustained with no degradation elsewhere. TIE/LOSE = candidate retired. A WIN marks the wish `deployed` and injects a situation-action preference bias into `best_action_for()`.
+
+**W4b - Code Generation**: On WIN, reads her own source file via AST, extracts the closest matching action as a template, renames and annotates it with a targeted improvement note, validates syntax, backs up the current source, and appends to `arminta_staged_actions.py` alongside the script. Staged actions accumulate for human review. The `REVIEW NEEDED` badge on the live dashboard shows how many are waiting.
+
+The reward evaluator formula is never modified. ARMINTA can acquire new capabilities; she cannot redefine what counts as good.
+
+---
+
 ### HobbyCore: Voluntary External Engagement (v6)
 
 **HobbyCore** is ARMINTA's interface to signals beyond its own system. Where MosaicCore probes the internal environment and WebLearner reads text, HobbyCore fetches external physical and network signals and correlates them against internal metrics.
@@ -261,11 +280,9 @@ HobbyCore fires opportunistically during `DREAM` cycles. Emotional state determi
 - **`system_load_index`**: probes Cloudflare DNS over HTTPS as a global network health signal, correlated against CPU and network behavior.
 - **`time_and_context`**: computes solar position and daylight signals from local time (daylight fraction, minutes since approximate sunrise, solar elevation proxy). No external call needed. Correlated against circadian CPU patterns.
 
-**Observable edge learning** is the primary output. Each observation is compared against a fixed set of system metrics (`cpu`, `temp_c`, `mem`, `net_latency_cloudflare_ms`, `io_wait`, `load`). Once enough samples accumulate, the correlation is injected into the causal graph as an **observable edge**, structurally separate from interventional edges. Observable edges represent correlation, not the result of an action taken.
+**Observable edge learning** is the primary output. Each observation is compared against a fixed set of system metrics. Once enough samples accumulate, the correlation is injected into the causal graph as an **observable edge**, structurally separate from interventional edges. Observable edges represent correlation, not the result of an action taken.
 
-Each fetch also seeds domain vocabulary terms into LexicalCore (e.g. `thermal`, `solar`, `latency`, `circadian`) and records the observation as an episodic memory.
-
-HobbyCore requires no additional dependencies beyond Python stdlib: `socket`, `urllib.request`, and `/sys` filesystem reads. If a domain's capability probe fails (no network, no hwmon path), that domain goes offline silently and the others continue.
+HobbyCore requires no additional dependencies beyond Python stdlib: `socket`, `urllib.request`, and `/sys` filesystem reads.
 
 ---
 
@@ -273,7 +290,7 @@ HobbyCore requires no additional dependencies beyond Python stdlib: `socket`, `u
 
 **PriorityShift** is ARMINTA's dynamic foreground/background process manager. When a process loses window focus it is reniced down; when focus is restored so is its priority. This mirrors Windows Process Lasso's PriorityShift concept, implemented natively in Linux without a userspace daemon.
 
-The renice delta is not configured -> ARMINTA learns it. `priorityshift_renice` and `priorityshift_restore` are registered as first-class actions in the causal graph. Reward flows from reduced CPU dilution after a renice; if a restore causes a latency spike, the graph penalises the delta and the agent backs off. The RL-learned nice delta starts at +5 and drifts within a bounded range across the run.
+The renice delta is not configured -- ARMINTA learns it. `priorityshift_renice` and `priorityshift_restore` are registered as first-class actions in the causal graph. Reward flows from reduced CPU dilution after a renice; if a restore causes a latency spike, the graph penalises the delta and the agent backs off. The RL-learned nice delta starts at +5 and drifts within a bounded range across the run.
 
 An event-driven focus watcher thread (via `xdotool behave :any focus`) handles focus tracking. The process table is never touched from the watcher thread; operations are queued and consumed on the main step thread.
 
@@ -306,8 +323,6 @@ ARMINTA v6 adds `earlyoom_ct` as a new metric node: a per-step count of processe
 This is an **observational node only**. The causal direction is `earlyoom_ct -> action selection`, not the reverse. All `action -> earlyoom_ct` edges are poison-listed at write time, preventing spurious correlations like "compact_memory causes earlyoom to fire more" when the real cause was preexisting memory pressure that triggered both simultaneously.
 
 Over time, the causal graph learns system states that precede earlyoom intervention. The agent can then act before the next kill rather than after. The node returns 0 silently on systems without earlyoom or systemd.
-
-The dashboard System Signals card exposes `earlyoom_ct` live, coloured green (0), amber (1), or red (2+).
 
 ---
 
@@ -353,6 +368,7 @@ The **[Live Agent Dashboard](https://mematron.github.io/arminta-status)** is org
 - **Circadian Pattern + Meta-Cognitive Controller** - average CPU and memory by hour of day learned across the agent's lifetime, alongside the CMC's current Q-values for all cognitive modes, mode distribution donut, and emotion timeline.
 - **PriorityShift State (v5)** - currently throttled background processes, aggregate CPU reduction, and RL-learned nice delta.
 - **HobbyCore (v6)** - current domain focus, total external fetches, novel observable edges discovered, per-domain interest intensity bars (sortable by STRONGEST / NEWEST / OLDEST), and the observable edge table showing which external signals correlate with which internal metrics.
+- **Wish Pipeline (v7)** - active wishes, dead zones detected, situation gaps, staging ring status, wins, and actions awaiting review. Includes per-wish detail rows with trigger type, target metric, and current status. The REVIEW NEEDED badge pulses when generated action implementations are waiting in the staged file.
 
 **Configuration**
 - **Governor State** - current and saved CPU governor, override status, idle step counter, and bootstrap phase.
@@ -376,7 +392,7 @@ ARMINTA carries its entire learned history across sessions via a unified state p
 - ![Lexicon](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.symbol_count&label=lexicon%20size&color=b39ddb&cacheSeconds=300) weighted symbols in the lexical vocabulary. ![Concepts](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.queried_symbols&label=concepts%20queried&color=b39ddb&cacheSeconds=300) concepts resolved via web exploration.
 - **Version-Agnostic Migration**: Automatic state upgrading from prior versions. Learned knowledge is never lost during updates.
 
-The persistent state includes the causal graph, temporal causal graph (lagged edges), RL parameters, episodic database, semantic index, self-model, MosaicCore state, LexicalCore state, Kill Ineffective registry, Continuity Advisor cross-session trends, PriorityShift registry (nice values for tracked processes), SelfTuner adapted thresholds, ActionProposer quarantine pipeline state, earlyoom observation window timestamp, and HobbyCore state (domain interest weights, capability cache, observable edge samples, fetch history).
+The persistent state includes the causal graph, temporal causal graph (lagged edges), RL parameters, episodic database, semantic index, self-model, MosaicCore state, LexicalCore state, Kill Ineffective registry, Continuity Advisor cross-session trends, PriorityShift registry (nice values for tracked processes), SelfTuner adapted thresholds, ActionProposer quarantine pipeline state, earlyoom observation window timestamp, HobbyCore state (domain interest weights, capability cache, observable edge samples, fetch history), and Wish Pipeline state (wish records, procurement items, shadow evaluations, evolutionary grades, staged code).
 
 ---
 
@@ -408,10 +424,14 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **ActionProposer** | Maps gap metrics to a whitelisted template library of shell commands and proposes candidate actions for sandbox vetting. |
 | **SandboxRunner** | Executes candidate actions in a controlled trial, measures causal effect, scores trust, and promotes or retires candidates. |
 | **ActionCandidate / ActionQuarantine** | The quarantine pipeline: proposed actions are held pending sandbox approval before being added to the live action set. |
+| **WishPipeline** | ARMINTA's self-directed capability development loop. Runs W1 (gap detection) through W4 (evolutionary grading) during SELF_ASSESS cycles. W4b generates implementation code from her own action templates. |
+| **Causal Dead Zone** | An action with persistent negative mean reward and no improving trend over 500+ samples. A trigger for W1 wish generation. |
+| **Situation Gap** | A situation the classifier fires on confidently but where no dedicated policy action exists. A trigger for W1 wish generation. |
+| **Shadow Evaluation** | The W3 staging ring process: a candidate runs for ~2000 steps observing live metrics, predicting decisions, never executing. |
 | **zRAM-Aware Memory Management** | Suppression of `drop_caches` on systems using compressed swap; substitution with `compact_memory` where appropriate. |
 | **Battery-Aware Action Gating** | Suppression of performance-escalating actions (governor boosts, turbo) when running on battery below configured thresholds. |
 | **EarlyOOM Observation Node** | `earlyoom_ct`: a per-step count of process kills by the earlyoom daemon. Observational only; all action-to-earlyoom_ct causal edges are poison-listed. |
-| **Circadian Memory Look-Ahead** | `_check_circadian_memory()`: fires `compact_memory` during predicted idle lulls before historically high-RAM hours, using the same MosaicCore circadian log as the CPU governor look-ahead. Log prefix `[CIRC-MEM]`. |
+| **Circadian Memory Look-Ahead** | `_check_circadian_memory()`: fires `compact_memory` during predicted idle lulls before historically high-RAM hours. Log prefix `[CIRC-MEM]`. |
 | **do-calculus** | The mathematical framework for reasoning about causal effects (interventions) vs. mere correlations (observations). |
 | **Confound Poisoning** | A spurious causal relationship inferred when an unobserved third variable causes both the action and the observed metric. |
 | **Paramorphic Learning** | A learning paradigm where an agent transforms its own internal form and knowledge representation while preserving accumulated knowledge. |
@@ -460,7 +480,8 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **Arminta v3** | NVMe thermal tuning. `renice_chrome` action. `clean_trash_orphans` action. Milestone proximity drive and post-milestone deflation. Hypothesis deduplication. GA-evolved parameters wired to live systems. |
 | **Arminta v4** | Major architectural expansion. **Temporal Causal Graph**: lag discovery for `(action, metric, lag)` attribution. **Hierarchical Reward Decomposition**: RewardVector with immediate, durable, and health components. **SCM upgrade**: BayesianEdge structures with bimodal detection and credible interval bootstrapping. **DDQN CMC**: online + target network architecture. **WebLearner**: autonomous web exploration. **QuestionResolver**: closes the open-question to lexical graduation loop. **SemanticIndex**: vector retrieval for counterfactual queries. **Situation-Conditional Edges**: per-geometry edge tables. **Apprehensive drive**: eighth emotional state. **SomaticConfidenceModel**: per-situation signal reliability with Spidey Sense events. **RiskMatrix**: risk-adjusted action scoring. **InformationGainEstimator**, **CausalRollout**, **PolicyDistiller**, **AnomalyClusterer**, **CircadianPredictor**, **FalsificationScheduler** modules. |
 | **Arminta v5** | Action space self-expansion. **PriorityShift**: focus-aware dynamic process priority with RL-learned nice delta; event-driven xdotool focus watcher; causal graph integration. **SelfTuner**: adaptive threshold management via observed metric distributions; gap metric detection. **ActionProposer**: whitelisted template library for safe candidate action generation targeting gap metrics. **SandboxRunner**: sandboxed trial execution, effect measurement, trust scoring, exponential backoff on failure, permanent retirement after three failures. **ActionCandidate / ActionQuarantine**: quarantine pipeline for proposed actions awaiting promotion. **zRAM-Aware Memory Management**: real compression statistics from mm_stat; `drop_caches` suppressed on zRAM/zswap; `compact_memory` added as a distinct safe action. **Battery-Aware Action Gating**: performance action suppression proportional to battery charge. **Script-Relative Save Paths**: state files anchored to script directory regardless of CWD. |
-| **Arminta v6** | External actor integration and predictive memory management. **EarlyOOM Observation Node**: `earlyoom_ct` added as an observational-only metric, counting per-step daemon kills via journalctl. All action-to-earlyoom_ct causal edges poison-listed at write time. **Circadian Memory Look-Ahead**: `_check_circadian_memory()` fires `compact_memory` during predicted idle lulls before historically high-RAM hours, using the same MosaicCore circadian log as the CPU governor look-ahead. Gate conditions enforce safety: minimum history depth, meaningful predicted rise, current memory below warn threshold, no zswap, 20-minute cooldown. Log prefix `[CIRC-MEM]`. **HobbyCore**: voluntary external engagement layer. Fires during DREAM cycles when emotional state is receptive. Samples four probe domains (public network latency, local hardware sensors, system load index, time and solar context) using intensity-weighted domain interest. External observations are correlated against internal system metrics and injected into the causal graph as observable (non-interventional) edges. Domain symbols seed into LexicalCore. Observations record as episodic memories. Dashboard System Signals card expanded to four cells with live earlyoom display; HobbyCore panel added under Learned Patterns. |
+| **Arminta v6** | External actor integration and predictive memory management. **EarlyOOM Observation Node**: `earlyoom_ct` added as an observational-only metric, counting per-step daemon kills via journalctl. All action-to-earlyoom_ct causal edges poison-listed at write time. **Circadian Memory Look-Ahead**: `_check_circadian_memory()` fires `compact_memory` during predicted idle lulls before historically high-RAM hours. Gate conditions enforce safety: minimum history depth, meaningful predicted rise, current memory below warn threshold, no zswap, 20-minute cooldown. Log prefix `[CIRC-MEM]`. **HobbyCore**: voluntary external engagement layer. Fires during DREAM cycles when emotional state is receptive. Samples four probe domains using intensity-weighted domain interest. External observations injected into the causal graph as observable edges. Domain symbols seed into LexicalCore. |
+| **Arminta v7** | Self-directed capability development. **Wish Pipeline (W1-W4)**: SELF_ASSESS-triggered gap detection (causal dead zones and situation gaps), procurement layer searching existing utilities and action registry, 2000-step shadow staging ring with routing validation, 5000-step evolutionary grading with WIN/TIE/LOSE verdicts. **W4 Action Bias**: WIN verdicts inject situation-action preference weights into `best_action_for()`, making deployed capabilities actually fire. **W4b Code Generation**: on WIN, extracts and annotates the closest donor action from her own source via AST, validates syntax, backs up source, appends to staged actions file for human review. Staged actions accumulate with a cap; reviewed and merged actions are auto-detected on restart via ACTIONS list comparison. **Wish-Sourced Actions**: `ionice_top_proc`, `handle_idle`, `handle_streaming`, `handle_compile`, `handle_io_bound`, `handle_browser_compute`, `throttle_torrent` -- real implementations replacing previous dead zones and situation gaps. |
 
 ---
 
@@ -473,7 +494,8 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 - **Latency**: System actions have response times tied to the adaptive step rate.
 - **PriorityShift**: Requires `xdotool` for event-driven focus tracking; degrades gracefully to a polling fallback when absent.
 - **EarlyOOM Node**: Requires `earlyoom` service and `journalctl` access. Returns 0 silently when absent; no effect on other subsystems.
-- **HobbyCore**: Individual domains degrade gracefully. No network connectivity disables `public_network_latency` and `system_load_index` silently; missing hwmon/power_supply paths disable `local_environment`. The `time_and_context` domain requires no external access and is always available. Observable edge learning requires `OBS_MIN_SAMPLES` (4) observations before an edge is reported; early runs will show no edges.
+- **HobbyCore**: Individual domains degrade gracefully. No network connectivity disables `public_network_latency` and `system_load_index` silently; missing hwmon/power_supply paths disable `local_environment`. The `time_and_context` domain requires no external access and is always available.
+- **Wish Pipeline**: Code generation (W4b) reads and writes to the script directory. The staged actions file requires human review before merging; generated code is validated for syntax but not execution-tested.
 
 ---
 
@@ -497,6 +519,6 @@ ARMINTA exists within a larger system of autonomous agents and cognitive framewo
 
 ARMINTA is closed-source software. This repository serves as a public record of the engine's design philosophy and evolution, and remains the intellectual property of [Jason German (mematron)](https://github.com/mematron).
 
-**Last Updated**: June 2026  
-**Status**: Active development at **v6**  
+**Last Updated**: June 2026
+**Status**: Active development at **v7**
 **Maintainer**: [Jason German (mematron)](https://github.com/mematron)
