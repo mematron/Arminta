@@ -42,7 +42,7 @@ ARMINTA deploys as a persistent system service. On first activation:
 **ARMINTA v1**
 ![ARMINTA live terminal](arminta_v1.png)
 
-**ARMINTA v6**
+**ARMINTA v7**
 ![ARMINTA live terminal](arminta_v6.png)
 
 ---
@@ -265,6 +265,8 @@ The process runs in four stages:
 
 The reward evaluator formula is never modified. ARMINTA can acquire new capabilities; she cannot redefine what counts as good.
 
+**Current state**: 17 active wishes, 15 causal dead zones detected, 2 situation gaps, 24 wins total, 7 items staged.
+
 ---
 
 ### HobbyCore: Voluntary External Engagement (v6)
@@ -282,6 +284,8 @@ HobbyCore fires opportunistically during `DREAM` cycles. Emotional state determi
 
 **Observable edge learning** is the primary output. Each observation is compared against a fixed set of system metrics. Once enough samples accumulate, the correlation is injected into the causal graph as an **observable edge**, structurally separate from interventional edges. Observable edges represent correlation, not the result of an action taken.
 
+923 total fetches to date across all domains. 72 novel observable edges discovered and injected into the causal graph. `ext_cpu_freq_spread` currently holds the strongest correlation (mean 0.277 across 116 samples).
+
 HobbyCore requires no additional dependencies beyond Python stdlib: `socket`, `urllib.request`, and `/sys` filesystem reads.
 
 ---
@@ -293,6 +297,8 @@ HobbyCore requires no additional dependencies beyond Python stdlib: `socket`, `u
 The renice delta is not configured -- ARMINTA learns it. `priorityshift_renice` and `priorityshift_restore` are registered as first-class actions in the causal graph. Reward flows from reduced CPU dilution after a renice; if a restore causes a latency spike, the graph penalises the delta and the agent backs off. The RL-learned nice delta starts at +5 and drifts within a bounded range across the run.
 
 An event-driven focus watcher thread (via `xdotool behave :any focus`) handles focus tracking. The process table is never touched from the watcher thread; operations are queued and consumed on the main step thread.
+
+235 renice events and 151 restore events logged across the current session. Current focus process: chrome.
 
 ---
 
