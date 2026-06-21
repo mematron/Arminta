@@ -265,7 +265,7 @@ The process runs in four stages:
 
 The reward evaluator formula is never modified. ARMINTA can acquire new capabilities; she cannot redefine what counts as good.
 
-**Current state**: 6 active wishes, 5 causal dead zones detected, 1 situation gap, 41 wins total, 0 items staged.
+**Current state**: ![active wishes](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.wish_active&label=active%20wishes&color=39ff14&cacheSeconds=300) ![dead zones](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.wish_dead_zones&label=dead%20zones&color=ffb300&cacheSeconds=300) ![sit. gaps](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.wish_sit_gaps&label=sit.%20gaps&color=ffb300&cacheSeconds=300) ![wins](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.wish_wins&label=wins&color=brightgreen&cacheSeconds=300) ![staged](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.wish_items_staged&label=staged&color=blue&cacheSeconds=300)
 
 ---
 
@@ -284,7 +284,7 @@ HobbyCore fires opportunistically during `DREAM` cycles. Emotional state determi
 
 **Observable edge learning** is the primary output. Each observation is compared against a fixed set of system metrics. Once enough samples accumulate, the correlation is injected into the causal graph as an **observable edge**, structurally separate from interventional edges. Observable edges represent correlation, not the result of an action taken.
 
-3,193 total fetches to date across all domains. 72 novel observable edges discovered and injected into the causal graph. `ext_battery_discharge_w` currently holds the strongest correlation (mean 0.347 across 21 samples).
+![total fetches](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.hobby.total_fetches&label=total%20fetches&color=89dceb&cacheSeconds=300) total fetches to date across all domains. ![novel edges](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.hobby.novel_edges&label=novel%20edges&color=89dceb&cacheSeconds=300) novel observable edges discovered and injected into the causal graph.
 
 HobbyCore requires no additional dependencies beyond Python stdlib: `socket`, `urllib.request`, and `/sys` filesystem reads.
 
@@ -298,7 +298,7 @@ The renice delta is not configured -- ARMINTA learns it. `priorityshift_renice` 
 
 An event-driven focus watcher thread (via `xdotool behave :any focus`) handles focus tracking. The process table is never touched from the watcher thread; operations are queued and consumed on the main step thread.
 
-888 renice events and 714 restore events logged across the current session. Current focus process: chrome.
+![renice events](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.priorityshift_renice_ct&label=renice%20events&color=fab387&cacheSeconds=300) ![restore events](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.priorityshift_restore_ct&label=restore%20events&color=fab387&cacheSeconds=300) logged across the current session. Current focus process: chrome.
 
 ---
 
