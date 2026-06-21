@@ -265,7 +265,7 @@ The process runs in four stages:
 
 The reward evaluator formula is never modified. ARMINTA can acquire new capabilities; she cannot redefine what counts as good.
 
-**Current state**: 17 active wishes, 15 causal dead zones detected, 2 situation gaps, 24 wins total, 7 items staged.
+**Current state**: 6 active wishes, 5 causal dead zones detected, 1 situation gap, 41 wins total, 0 items staged.
 
 ---
 
@@ -284,7 +284,7 @@ HobbyCore fires opportunistically during `DREAM` cycles. Emotional state determi
 
 **Observable edge learning** is the primary output. Each observation is compared against a fixed set of system metrics. Once enough samples accumulate, the correlation is injected into the causal graph as an **observable edge**, structurally separate from interventional edges. Observable edges represent correlation, not the result of an action taken.
 
-923 total fetches to date across all domains. 72 novel observable edges discovered and injected into the causal graph. `ext_cpu_freq_spread` currently holds the strongest correlation (mean 0.277 across 116 samples).
+3,193 total fetches to date across all domains. 72 novel observable edges discovered and injected into the causal graph. `ext_battery_discharge_w` currently holds the strongest correlation (mean 0.347 across 21 samples).
 
 HobbyCore requires no additional dependencies beyond Python stdlib: `socket`, `urllib.request`, and `/sys` filesystem reads.
 
@@ -298,7 +298,7 @@ The renice delta is not configured -- ARMINTA learns it. `priorityshift_renice` 
 
 An event-driven focus watcher thread (via `xdotool behave :any focus`) handles focus tracking. The process table is never touched from the watcher thread; operations are queued and consumed on the main step thread.
 
-235 renice events and 151 restore events logged across the current session. Current focus process: chrome.
+888 renice events and 714 restore events logged across the current session. Current focus process: chrome.
 
 ---
 
