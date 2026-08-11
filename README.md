@@ -342,15 +342,29 @@ Log prefix `[CIRC-MEM]` distinguishes proactive circadian compaction from reacti
 
 ---
 
+### Hardware Migration: Edge-Level Provenance (v7)
+
+The Continuity Advisor detects a hardware fingerprint change on load and increments a persistent `hardware_epoch` counter. When that happens, a bounded, ranked batch of the highest-confidence causal edges (up to six, capped by hypothesis-queue capacity) is actively requeued through the HypothesisEngine to re-earn its verdict on the new hardware. Their raw sample history is cleared; their prior verdict is retained as reference metadata rather than live evidence.
+
+Everything outside that batch is not actively reset. Those edges keep accumulating evidence through ordinary step-by-step observation and will self-correct over time via normal prediction-error feedback -- but without an explicit signal marking them as unconfirmed on the current hardware.
+
+Every causal edge now carries an `edge_hardware_epoch` stamp, written the moment `intervene()` records a fresh observation for it. Comparing that stamp against the current `hardware_epoch` identifies exactly which edges in the graph have not yet been re-confirmed since the last detected migration, independent of whether they were part of the actively-requeued batch. This closes the visibility gap on the long tail: instead of the graph silently carrying forward pre-migration conclusions, the unconfirmed set is a countable, queryable value pushed to the dashboard each step.
+
+The stamp is pruned wherever an edge itself is deleted (weak-edge pruning, ghost-edge scrub, poison-edge scrub, startup retirement scrub), with a dream-cycle backstop scrub that reconciles the stamp dict against live edges -- the same orphan-prevention pattern already used for `edge_mechanisms`.
+
+Log prefix `[HW_CHANGE]` marks a detected fingerprint change; `[HW_REVALIDATE]` marks the requeue/clear summary for the actively-selected batch.
+
+---
+
 ## Live Dashboard
 
 The **[Live Agent Dashboard](https://mematron.github.io/arminta-status)** is organized as a narrative from top to bottom: immediate status, then live cognitive state, then what the agent has done and why, then the causal world model, then historical and learned patterns, then configuration at the bottom.
 
 **Immediate status**
 - **Hero Step Counter** - total empirical steps taken on target hardware, pulsing live.
-- **Mode / Situation / Reward Row** - current cognitive mode, workload geometry, rolling average reward, error step count, and confound rate at a glance.
+- **Mode / Situation / Reward Row** - current cognitive mode, workload geometry, rolling average reward, error step count, confound rate, and edges unverified since the last hardware migration, at a glance.
 - **Reward History Sparklines** - three stacked charts: raw per-step reward bars, 10-step rolling average, and reward variance with the dream throttle floor line.
-- **Continuity Advisory** - multi-signal cross-session hardware stress verdict: NOMINAL / ADVISORY / MIGRATION WARRANTED.
+- **Continuity Advisory** - multi-signal cross-session hardware stress verdict: NOMINAL / ADVISORY / MIGRATION WARRANTED. The unverified-edges count is a complementary, edge-level signal underneath this verdict, not a replacement for it.
 
 **Live cognitive state**
 - **Emotional State** - dominant affect label and bar grid across all emotion dimensions.
@@ -398,7 +412,7 @@ ARMINTA carries its entire learned history across sessions via a unified state p
 - ![Lexicon](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.symbol_count&label=lexicon%20size&color=b39ddb&cacheSeconds=300) weighted symbols in the lexical vocabulary. ![Concepts](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.queried_symbols&label=concepts%20queried&color=b39ddb&cacheSeconds=300) concepts resolved via web exploration.
 - **Version-Agnostic Migration**: Automatic state upgrading from prior versions. Learned knowledge is never lost during updates.
 
-The persistent state includes the causal graph, temporal causal graph (lagged edges), RL parameters, episodic database, semantic index, self-model, MosaicCore state, LexicalCore state, Kill Ineffective registry, Continuity Advisor cross-session trends, PriorityShift registry (nice values for tracked processes), SelfTuner adapted thresholds, ActionProposer quarantine pipeline state, earlyoom observation window timestamp, HobbyCore state (domain interest weights, capability cache, observable edge samples, fetch history), and Wish Pipeline state (wish records, procurement items, shadow evaluations, evolutionary grades, staged code).
+The persistent state includes the causal graph, temporal causal graph (lagged edges), RL parameters, episodic database, semantic index, self-model, MosaicCore state, LexicalCore state, Kill Ineffective registry, Continuity Advisor cross-session trends, hardware profile state (fingerprint history, hardware epoch, per-edge hardware-epoch provenance), PriorityShift registry (nice values for tracked processes), SelfTuner adapted thresholds, ActionProposer quarantine pipeline state, earlyoom observation window timestamp, HobbyCore state (domain interest weights, capability cache, observable edge samples, fetch history), and Wish Pipeline state (wish records, procurement items, shadow evaluations, evolutionary grades, staged code).
 
 ---
 
@@ -447,6 +461,8 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **Poison Registry** | A list of structurally impossible causal edges to prevent learning relationships that cannot exist. |
 | **Kill Ineffective Registry** | A persisted list of process names repeatedly targeted without producing reward improvement. |
 | **Continuity Advisor** | A read-only subsystem monitoring cross-session hardware stress signals. |
+| **Hardware Epoch** | A counter incremented each time a hardware fingerprint change is detected on load. Distinguishes which run of physical hardware a piece of learned knowledge was acquired under. |
+| **Edge Hardware-Epoch Provenance** | A per-edge stamp (`edge_hardware_epoch`) recording which hardware epoch an edge was last confirmed under. Used to surface edges not yet re-verified since the last detected migration, independent of the small ranked batch actively requeued for revalidation. |
 | **Meta-Cognitive Controller (CMC)** | A DDQN agent above the main loop that selects which cognitive mode to enter. |
 | **DDQNQTable** | The v4 upgrade to the CMC's Q-table using a target network for stable bootstrapping. |
 | **Tiered Approval Threshold** | The minimum metric delta required for a proposed action to be approved into the live action set. |
@@ -487,7 +503,7 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 | **Arminta v4** | Major architectural expansion. **Temporal Causal Graph**: lag discovery for `(action, metric, lag)` attribution. **Hierarchical Reward Decomposition**: RewardVector with immediate, durable, and health components. **SCM upgrade**: BayesianEdge structures with bimodal detection and credible interval bootstrapping. **DDQN CMC**: online + target network architecture. **WebLearner**: autonomous web exploration. **QuestionResolver**: closes the open-question to lexical graduation loop. **SemanticIndex**: vector retrieval for counterfactual queries. **Situation-Conditional Edges**: per-geometry edge tables. **Apprehensive drive**: eighth emotional state. **SomaticConfidenceModel**: per-situation signal reliability with Spidey Sense events. **RiskMatrix**: risk-adjusted action scoring. **InformationGainEstimator**, **CausalRollout**, **PolicyDistiller**, **AnomalyClusterer**, **CircadianPredictor**, **FalsificationScheduler** modules. |
 | **Arminta v5** | Action space self-expansion. **PriorityShift**: focus-aware dynamic process priority with RL-learned nice delta; event-driven xdotool focus watcher; causal graph integration. **SelfTuner**: adaptive threshold management via observed metric distributions; gap metric detection. **ActionProposer**: whitelisted template library for safe candidate action generation targeting gap metrics. **SandboxRunner**: sandboxed trial execution, effect measurement, trust scoring, exponential backoff on failure, permanent retirement after three failures. **ActionCandidate / ActionQuarantine**: quarantine pipeline for proposed actions awaiting promotion. **zRAM-Aware Memory Management**: real compression statistics from mm_stat; `drop_caches` suppressed on zRAM/zswap; `compact_memory` added as a distinct safe action. **Battery-Aware Action Gating**: performance action suppression proportional to battery charge. **Script-Relative Save Paths**: state files anchored to script directory regardless of CWD. |
 | **Arminta v6** | External actor integration and predictive memory management. **EarlyOOM Observation Node**: `earlyoom_ct` added as an observational-only metric, counting per-step daemon kills via journalctl. All action-to-earlyoom_ct causal edges poison-listed at write time. **Circadian Memory Look-Ahead**: `_check_circadian_memory()` fires `compact_memory` during predicted idle lulls before historically high-RAM hours. Gate conditions enforce safety: minimum history depth, meaningful predicted rise, current memory below warn threshold, no zswap, 20-minute cooldown. Log prefix `[CIRC-MEM]`. **HobbyCore**: voluntary external engagement layer. Fires during DREAM cycles when emotional state is receptive. Samples four probe domains using intensity-weighted domain interest. External observations injected into the causal graph as observable edges. Domain symbols seed into LexicalCore. |
-| **Arminta v7** | Self-directed capability development. **Wish Pipeline (W1-W4)**: SELF_ASSESS-triggered gap detection (causal dead zones and situation gaps), procurement layer searching existing utilities and action registry, 2000-step shadow staging ring with routing validation, 5000-step evolutionary grading with WIN/TIE/LOSE verdicts. **W4 Action Bias**: WIN verdicts inject situation-action preference weights into `best_action_for()`, making deployed capabilities actually fire. **W4b Code Generation**: on WIN, extracts and annotates the closest donor action from her own source via AST, validates syntax, backs up source, appends to staged actions file for human review. Staged actions accumulate with a cap; reviewed and merged actions are auto-detected on restart via ACTIONS list comparison. **Wish-Sourced Actions**: `ionice_top_proc`, `handle_idle`, `handle_streaming`, `handle_compile`, `handle_io_bound`, `handle_browser_compute`, `throttle_torrent` -- real implementations replacing previous dead zones and situation gaps. |
+| **Arminta v7** | Self-directed capability development. **Wish Pipeline (W1-W4)**: SELF_ASSESS-triggered gap detection (causal dead zones and situation gaps), procurement layer searching existing utilities and action registry, 2000-step shadow staging ring with routing validation, 5000-step evolutionary grading with WIN/TIE/LOSE verdicts. **W4 Action Bias**: WIN verdicts inject situation-action preference weights into `best_action_for()`, making deployed capabilities actually fire. **W4b Code Generation**: on WIN, extracts and annotates the closest donor action from her own source via AST, validates syntax, backs up source, appends to staged actions file for human review. Staged actions accumulate with a cap; reviewed and merged actions are auto-detected on restart via ACTIONS list comparison. **Wish-Sourced Actions**: `ionice_top_proc`, `handle_idle`, `handle_streaming`, `handle_compile`, `handle_io_bound`, `handle_browser_compute`, `throttle_torrent` -- real implementations replacing previous dead zones and situation gaps. **Hardware Migration Edge Provenance**: per-edge `hardware_epoch` stamping identifies causal edges not yet re-confirmed since the last detected hardware fingerprint change, surfaced as a live dashboard count alongside the existing bounded, ranked revalidation batch. |
 
 ---
 
@@ -496,7 +512,7 @@ The persistent state includes the causal graph, temporal causal graph (lagged ed
 - **Linux-Only**: Designed exclusively for Linux systems with modern PSI support.
 - **Root Privileges Required**: Full system optimization requires root access.
 - **Closed Source**: The full implementation is proprietary. This repository documents architecture and philosophy only.
-- **Hardware-Specific Learning**: The causal graph is learned on specific hardware.
+- **Hardware-Specific Learning**: The causal graph is learned on specific hardware. On a detected hardware change, only a small ranked batch of edges (up to six, capped by hypothesis-queue capacity) is actively requeued for revalidation per migration event; the rest of the graph carries forward and self-corrects passively through ongoing observation rather than an explicit re-test. The unverified-edges count on the dashboard makes the size of that passive set visible.
 - **Latency**: System actions have response times tied to the adaptive step rate.
 - **PriorityShift**: Requires `xdotool` for event-driven focus tracking; degrades gracefully to a polling fallback when absent.
 - **EarlyOOM Node**: Requires `earlyoom` service and `journalctl` access. Returns 0 silently when absent; no effect on other subsystems.
