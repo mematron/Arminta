@@ -76,70 +76,70 @@ The two loops are deliberately separated. Long-term strategy does not interfere 
 
 ```mermaid
 flowchart TD
-    signals["System metrics"] --> context["Situation model"]
-    context --> mode["Mode controller"]
-    mode --> policy["Causal action selection"]
-    graph["Causal graph"] --> policy
-    policy --> action["System intervention"]
-    action --> measured["Measured outcome"]
-    measured --> graph
-    measured --> history["Episodic memory"]
+    node_signals["System metrics"] --> node_context["Situation model"];
+    node_context --> node_mode["Mode controller"];
+    node_mode --> node_policy["Causal action selection"];
+    node_graph["Causal graph"] --> node_policy;
+    node_policy --> node_action["System intervention"];
+    node_action --> node_measured["Measured outcome"];
+    node_measured --> node_graph;
+    node_measured --> node_history["Episodic memory"];
 ```
 
 #### Reflection and hypotheses
 
 ```mermaid
 flowchart TD
-    history["Episodic memory"] --> dream["Dream cycle"]
-    dream --> hypotheses["Hypothesis engine"]
-    dream --> lexical["Lexical Core"]
-    dream --> mosaic["Mosaic Core"]
-    hypotheses --> graph["Causal evidence"]
-    graph --> history
-    lexical --> history
-    mosaic --> history
+    node_history["Episodic memory"] --> node_dream["Dream cycle"];
+    node_dream --> node_hypotheses["Hypothesis engine"];
+    node_dream --> node_lexical["Lexical Core"];
+    node_dream --> node_mosaic["Mosaic Core"];
+    node_hypotheses --> node_graph["Causal evidence"];
+    node_graph --> node_history;
+    node_lexical --> node_history;
+    node_mosaic --> node_history;
 ```
 
 #### Web research and language
 
 ```mermaid
 flowchart TD
-    question["Open question"] --> web["Web learner"]
-    web --> text["Sourced passage"]
-    text --> lexical["Lexical Core"]
-    text --> useful["Source usefulness"]
-    useful -->|Guides future choices| web
-    sensors["Local observations"] --> lexical
-    lexical --> output["Statements and definitions"]
+    node_question["Open question"] --> node_web["Web learner"];
+    node_web --> node_text["Sourced passage"];
+    node_text --> node_lexical["Lexical Core"];
+    node_text --> node_useful["Source usefulness"];
+    node_useful -->|Guides future choices| node_web;
+    node_sensors["Local observations"] --> node_lexical;
+    node_lexical --> node_output["Statements and definitions"];
 ```
 
 #### Wish Pipeline
 
 ```mermaid
 flowchart TD
-    gap["Detect a gap"] --> shop["Find candidates"]
-    shop --> shadow["Shadow staging"]
-    shadow --> grade["Grade outcome"]
-    shadow -->|Accuracy failure| feedback["Record failure"]
-    grade -->|WIN| generate["Generate variant"]
-    grade -->|LOSE| feedback
-    generate --> checks["Check inputs and dependencies"]
-    checks -->|Eligible| live["Register live action"]
-    checks -->|Rejected| feedback
-    feedback -->|Guide later attempts| shop
+    node_gap["Detect a gap"] --> node_shop["Find candidates"];
+    node_shop --> node_shadow["Shadow staging"];
+    node_shadow --> node_grade["Grade outcome"];
+    node_shadow -->|Accuracy failure| node_feedback["Record failure"];
+    node_grade -->|WIN| node_generate["Generate variant"];
+    node_grade -->|LOSE| node_feedback;
+    node_generate --> node_checks["Check inputs and dependencies"];
+    node_checks -->|Eligible| node_live["Register live action"];
+    node_checks -->|Rejected| node_feedback;
+    node_feedback -->|Guide later attempts| node_shop;
 ```
 
 #### Online learning
 
 ```mermaid
 flowchart TD
-    metrics["System metrics"] --> forecast["Telemetry forecasts"]
-    actions["Action outcomes"] --> rewards["Reward estimates"]
-    articles["Web learning outcomes"] --> ranking["Source ranking"]
-    forecast --> score["Compare with baselines"]
-    rewards --> score
-    ranking --> score
-    score -->|Validated ranking| sources["Future web source selection"]
+    node_metrics["System metrics"] --> node_forecast["Telemetry forecasts"];
+    node_actions["Action outcomes"] --> node_rewards["Reward estimates"];
+    node_articles["Web learning outcomes"] --> node_ranking["Source ranking"];
+    node_forecast --> node_score["Compare with baselines"];
+    node_rewards --> node_score;
+    node_ranking --> node_score;
+    node_score -->|Validated ranking| node_sources["Future web source selection"];
 ```
 
 <details>
