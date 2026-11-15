@@ -72,6 +72,79 @@ ARMINTA uses a **double-loop** learning architecture:
 
 The two loops are deliberately separated. Long-term strategy does not interfere with per-step intervention.
 
+#### Decision and intervention
+
+```mermaid
+flowchart TD
+    signals["System metrics"] --> context["Situation model"]
+    context --> mode["Mode controller"]
+    mode --> policy["Causal action selection"]
+    graph["Causal graph"] --> policy
+    policy --> action["System intervention"]
+    action --> measured["Measured outcome"]
+    measured --> graph
+    measured --> history["Episodic memory"]
+```
+
+#### Reflection and hypotheses
+
+```mermaid
+flowchart TD
+    history["Episodic memory"] --> dream["Dream cycle"]
+    dream --> hypotheses["Hypothesis engine"]
+    dream --> lexical["Lexical Core"]
+    dream --> mosaic["Mosaic Core"]
+    hypotheses --> graph["Causal evidence"]
+    graph --> history
+    lexical --> history
+    mosaic --> history
+```
+
+#### Web research and language
+
+```mermaid
+flowchart TD
+    question["Open question"] --> web["Web learner"]
+    web --> text["Sourced passage"]
+    text --> lexical["Lexical Core"]
+    text --> useful["Source usefulness"]
+    useful -->|Guides future choices| web
+    sensors["Local observations"] --> lexical
+    lexical --> output["Statements and definitions"]
+```
+
+#### Wish Pipeline
+
+```mermaid
+flowchart TD
+    gap["Detect a gap"] --> shop["Find candidates"]
+    shop --> shadow["Shadow staging"]
+    shadow --> grade["Grade outcome"]
+    shadow -->|Accuracy failure| feedback["Record failure"]
+    grade -->|WIN| generate["Generate variant"]
+    grade -->|LOSE| feedback
+    generate --> checks["Check inputs and dependencies"]
+    checks -->|Eligible| live["Register live action"]
+    checks -->|Rejected| feedback
+    feedback -->|Guide later attempts| shop
+```
+
+#### Online learning
+
+```mermaid
+flowchart TD
+    metrics["System metrics"] --> forecast["Telemetry forecasts"]
+    actions["Action outcomes"] --> rewards["Reward estimates"]
+    articles["Web learning outcomes"] --> ranking["Source ranking"]
+    forecast --> score["Compare with baselines"]
+    rewards --> score
+    ranking --> score
+    score -->|Validated ranking| sources["Future web source selection"]
+```
+
+<details>
+<summary>Full architecture map</summary>
+
 ```mermaid
 graph TD
     classDef default fill:#11111b,stroke:#a6adc8,stroke-width:1px,color:#cdd6f4;
@@ -203,6 +276,8 @@ graph TD
     WishPipeline -->|Deployed actions| WorldModel
     WishPipeline -->|Symbol seeding| LexicalCore
 ```
+
+</details>
 
 ---
 
@@ -543,6 +618,6 @@ ARMINTA exists within a larger system of autonomous agents and cognitive framewo
 
 ARMINTA is closed-source software. This repository serves as a public record of the engine's design philosophy and evolution, and remains the intellectual property of [Jason German (mematron)](https://github.com/mematron).
 
-**Last Updated**: November 2026
+**Last Updated**: June 2026
 **Status**: Active development at **v7**
 **Maintainer**: [Jason German (mematron)](https://github.com/mematron)
