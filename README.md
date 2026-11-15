@@ -616,8 +616,8 @@ ARMINTA exists within a larger system of autonomous agents and cognitive framewo
 
 ## License and Attribution
 
-ARMINTA is closed-source software. This repository serves as a public record of the engine's design philosophy and evolution, and remains the intellectual property of [Jason German (mematron)](https://github.com/mematron).
+ARMINTA is closed-source software. This repository documents the engine’s design, philosophy, and evolution. ARMINTA is the intellectual property of [Jason German (mematron)](https://github.com/mematron).
 
-**Last Updated**: November 2026
-**Status**: Active development at **v7**
-**Maintainer**: [Jason German (mematron)](https://github.com/mematron)
+- **Last updated** November 2026
+- **Status** v7 in active development
+- **Maintainer** [Jason German (mematron)](https://github.com/mematron)
