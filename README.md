@@ -76,6 +76,11 @@ The two loops are deliberately separated. Long-term strategy does not interfere 
 
 #### Decision and intervention
 
+![Decision and intervention diagram](diagrams/decision-intervention.svg)
+
+<details>
+<summary>Diagram source (Mermaid)</summary>
+
 ```mermaid
 flowchart TD
     node_signals["System metrics"] --> node_context["Situation model"];
@@ -88,7 +93,14 @@ flowchart TD
     node_measured --> node_history["Episodic memory"];
 ```
 
+</details>
+
 #### Reflection and hypotheses
+
+![Reflection and hypotheses diagram](diagrams/reflection-hypotheses.svg)
+
+<details>
+<summary>Diagram source (Mermaid)</summary>
 
 ```mermaid
 flowchart TD
@@ -102,7 +114,14 @@ flowchart TD
     node_mosaic --> node_history;
 ```
 
+</details>
+
 #### Web research and language
+
+![Web research and language diagram](diagrams/web-research-language.svg)
+
+<details>
+<summary>Diagram source (Mermaid)</summary>
 
 ```mermaid
 flowchart TD
@@ -115,7 +134,14 @@ flowchart TD
     node_lexical --> node_output["Statements and definitions"];
 ```
 
+</details>
+
 #### Wish Pipeline
+
+![Wish Pipeline diagram](diagrams/wish-pipeline.svg)
+
+<details>
+<summary>Diagram source (Mermaid)</summary>
 
 ```mermaid
 flowchart TD
@@ -131,7 +157,14 @@ flowchart TD
     node_feedback -->|Guide later attempts| node_shop;
 ```
 
+</details>
+
 #### Online learning
+
+![Online learning diagram](diagrams/online-learning.svg)
+
+<details>
+<summary>Diagram source (Mermaid)</summary>
 
 ```mermaid
 flowchart TD
@@ -144,8 +177,15 @@ flowchart TD
     node_score -->|Validated ranking| node_sources["Future web source selection"];
 ```
 
+</details>
+
 <details>
 <summary>Full architecture map</summary>
+
+![Full architecture map diagram](diagrams/full-architecture-map.svg)
+
+<details>
+<summary>Diagram source (Mermaid)</summary>
 
 ```mermaid
 graph TD
@@ -278,6 +318,8 @@ graph TD
     WishPipeline -->|Deployed actions| WorldModel
     WishPipeline -->|Symbol seeding| LexicalCore
 ```
+
+</details>
 
 </details>
 
