@@ -297,6 +297,8 @@ What runs during a DREAM cycle:
 - **MosaicCore and LexicalCore processing**: Open hypotheses in MosaicCore are tested against accumulated data. LexicalCore runs its co-occurrence pass and attempts statement formation from updated symbol weights.
 - **HobbyCore engagement**: External domain signals are fetched, correlated against internal metrics, and any new symbols are seeded into LexicalCore. Emotional state determines whether engagement happens at all.
 
+That is paramorphic learning in practice: in DREAM, ARMINTA reshapes its own parameters, hypotheses, and world model while keeping what it has already learned.
+
 DREAM is the dominant mode in the episode log. The machine spends most of its time idle and DREAM runs during idle. The high volume is a property of the environment, not a design target.
 
 ---
