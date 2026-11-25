@@ -363,7 +363,7 @@ During `DREAM` cycles, open hypotheses are tested against accumulated data. All 
 
 ### LexicalCore: Emerging Language
 
-**LexicalCore** builds vocabulary from ARMINTA's own episodes and the pages her WebLearner reads. ![Lexicon](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.symbol_count&label=lexicon%20size&color=b39ddb&cacheSeconds=300) weighted terms in the current vocabulary.
+**LexicalCore** builds vocabulary from ARMINTA's own episodes and the pages her WebLearner reads. ![Lexicon](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/mematron/27ec34034b4aed5d2cdd7563738fe5be/raw/arminta_stats.json&query=$.web_learning.symbol_count&label=lexicon%20size&color=b39ddb&cacheSeconds=300)
 
 - **Vocabulary and associations** grow from action outcomes, episode sequences, and relevant words in web passages.
 - **Sentence formation** uses phrase patterns learned from prose to choose among existing ways to express an observation. During `DREAM` and `SELF_ASSESS`, she can reuse definitions learned from web pages and retain their source URLs.
